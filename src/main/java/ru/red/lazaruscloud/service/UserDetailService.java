@@ -5,6 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ru.red.lazaruscloud.model.LazarusUserDetail;
+import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.repository.UserRepository;
 
 @Service
@@ -15,6 +17,7 @@ public class UserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+         User user = userRepository.findUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+         return new LazarusUserDetail(user);
     }
 }
