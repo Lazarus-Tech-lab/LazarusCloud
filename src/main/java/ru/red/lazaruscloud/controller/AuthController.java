@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.red.lazaruscloud.dto.JwtResponseDto;
 import ru.red.lazaruscloud.dto.LoginRequestDto;
 import ru.red.lazaruscloud.dto.RegisterRequestDto;
+import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.repository.UserRepository;
 import ru.red.lazaruscloud.security.Role;
@@ -36,7 +37,7 @@ public class AuthController {
 
     @PostMapping("/auth")
     public ResponseEntity<JwtResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-        UserDetails userDetails = userDetailService.loadUserByUsername(loginRequestDto.username());
+        LazarusUserDetail userDetails = userDetailService.loadUserByUsername(loginRequestDto.username());
 
         if(!passwordEncoder.matches(loginRequestDto.password(), userDetails.getPassword())) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

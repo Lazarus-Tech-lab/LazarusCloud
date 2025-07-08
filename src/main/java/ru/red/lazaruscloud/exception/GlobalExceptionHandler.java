@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -29,6 +30,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleDbErrors(DataIntegrityViolationException ex) {
         return ResponseEntity.badRequest().body(
                 Map.of("error", "username or email already in use")
+        );
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<?> handleMultipartErrors(MultipartException ex) {
+        return ResponseEntity.badRequest().body(
+                Map.of("error", "need file")
         );
     }
 }
