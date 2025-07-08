@@ -1,4 +1,4 @@
-package ru.red.lazaruscloud.dto;
+package ru.red.lazaruscloud.dto.authDtos;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

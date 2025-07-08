@@ -16,6 +16,9 @@ public class CloudFile {
 
     @Column(nullable = false, name = "file_name")
     private String fileName;
+
+    @Column(name = "server_filename", nullable = false)
+    private String serverFileName;
     @Setter
     @ManyToOne
     @JoinColumn(name = "file_owner_id")
@@ -25,6 +28,8 @@ public class CloudFile {
     private long fileSize;
 
     @Column(nullable = false)
+    @Getter
+    @Setter
     private boolean isShared;
 
     @Column(name = "server_path", nullable = false)

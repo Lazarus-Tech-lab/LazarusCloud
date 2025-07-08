@@ -1,6 +1,6 @@
 package ru.red.lazaruscloud.mapper;
 
-import ru.red.lazaruscloud.dto.CloudFileDto;
+import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
 import ru.red.lazaruscloud.model.CloudFile;
 
 public class CloudFileMapper {

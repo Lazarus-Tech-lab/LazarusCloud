@@ -2,6 +2,7 @@ package ru.red.lazaruscloud.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleDbErrors(DataIntegrityViolationException ex) {
         return ResponseEntity.badRequest().body(
                 Map.of("error", "username or email already in use")
+        );
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<?> handleAuthError(UsernameNotFoundException ex) {
+        return ResponseEntity.badRequest().body(
+                Map.of("error", "username or password incorrect")
         );
     }
 

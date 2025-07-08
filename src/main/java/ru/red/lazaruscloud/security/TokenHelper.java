@@ -8,7 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import ru.red.lazaruscloud.dto.JwtResponseDto;
+import ru.red.lazaruscloud.dto.authDtos.JwtResponseDto;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
