@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazarus cloud</title>
+    <link rel="stylesheet" href="style/main.css">
+</head>
+<body class="auth-page">
+    <div class="noise"></div>
+    
+    <div class="auth-theme-switcher" id="themeSwitcher">🌙 Dark Mode</div>
+    
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="auth-logo">Lazarus cloud</div>
+            <div class="auth-subtitle">Light cloud for all</div>
+        </div>
+        
+        <div class="auth-tabs">
+            <div class="auth-tab active" data-tab="login">Login</div>
+            <div class="auth-tab" data-tab="register">Register</div>
+        </div>
+        
+        <form id="loginForm" class="auth-form active">
+            <div class="auth-input-group">
+                <label class="auth-label">Username</label>
+                <input type="text" class="auth-input" id="loginUsername" required>
+                <div class="error-message" id="loginUsernameError"></div>
+            </div>
+            
+            <div class="auth-input-group">
+                <label class="auth-label">Password</label>
+                <input type="password" class="auth-input" id="loginPassword" required>
+                <div class="error-message" id="loginPasswordError"></div>
+            </div>
+            
+            <button type="submit" class="auth-btn">Sign In</button>
+            
+            <div class="auth-footer">
+                Don't have an account? <span class="auth-link" id="switchToRegister">Register</span>
+            </div>
+        </form>
+        
+        <form id="registerForm" class="auth-form">
+            <div class="auth-input-group">
+                <label class="auth-label">Username</label>
+                <input type="text" class="auth-input" id="registerUsername" required>
+                <div class="error-message" id="registerUsernameError"></div>
+            </div>
+            
+            <div class="auth-input-group">
+                <label class="auth-label">Email</label>
+                <input type="email" class="auth-input" id="registerEmail" required>
+                <div class="error-message" id="registerEmailError"></div>
+            </div>
+            
+            <div class="auth-input-group">
+                <label class="auth-label">Password</label>
+                <input type="password" class="auth-input" id="registerPassword" required>
+                <div class="error-message" id="registerPasswordError"></div>
+            </div>
+            
+            <div class="auth-input-group">
+                <label class="auth-label">Confirm Password</label>
+                <input type="password" class="auth-input" id="registerConfirmPassword" required>
+                <div class="error-message" id="registerConfirmPasswordError"></div>
+            </div>
+            
+            <button type="submit" class="auth-btn">Create Account</button>
+            
+            <div class="auth-footer">
+                Already have an account? <span class="auth-link" id="switchToLogin">Sign In</span>
+            </div>
+        </form>
+    </div>
+
+    <script src="script/script.js"></script>
+</body>
+</html>

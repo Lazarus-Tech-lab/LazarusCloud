@@ -20,7 +20,7 @@ public class CloudFileService {
     private final CloudFileRepository cloudFileRepository;
 
     public List<CloudFileDto> getAllFilesByUser(LazarusUserDetail userDetails) {
-        List<CloudFile> cloudFiles = cloudFileRepository.findAllByFileOwner(userDetails);
+        List<CloudFile> cloudFiles = cloudFileRepository.findAllByFileOwner_Id(userDetails.getId());
         List<CloudFileDto> files = new ArrayList<>();
         for (CloudFile cloudFile : cloudFiles) {
             files.add(CloudFileMapper.toDto(cloudFile));
@@ -33,9 +33,9 @@ public class CloudFileService {
         try {
             Path uploadDir = Paths.get("uploads");
             Files.createDirectories(uploadDir);
-
-            String serverFileName = UUID.randomUUID() + Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
-            Path filePath = uploadDir.resolve(Objects.requireNonNull(serverFileName));
+            String serverFileName = UUID.randomUUID().toString();
+            String serverFileNameExt = UUID.randomUUID() + Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
+            Path filePath = uploadDir.resolve(Objects.requireNonNull(serverFileNameExt));
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             CloudFile cloudFile = new CloudFile();
@@ -49,7 +49,7 @@ public class CloudFileService {
 
             CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
 
-            return new CloudFileDto(uploadedFile.getId(), uploadedFile.getFileName(),
+            return new CloudFileDto(uploadedFile.getId(), uploadedFile.getFileName(), uploadedFile.getServerFileName(),
                     uploadedFile.getFileOwner().getId(), uploadedFile.getFileSize(),
                     uploadedFile.isShared(), uploadedFile.getPath());
         } catch (IOException e) {
@@ -73,11 +73,11 @@ public class CloudFileService {
         return null;
     }
 
-    public CloudFileDto getSharedFile(String fileName) {
+    public Optional<CloudFileDto> getSharedFile(String fileName) {
         Optional<CloudFile> file = cloudFileRepository.findCloudFileByServerFileName(fileName);
         if (file.isPresent() && file.get().isShared()) {
-            return CloudFileMapper.toDto(file.get());
+            return Optional.of(CloudFileMapper.toDto(file.get()));
         }
-        return null;
+        return Optional.empty();
     }
 }

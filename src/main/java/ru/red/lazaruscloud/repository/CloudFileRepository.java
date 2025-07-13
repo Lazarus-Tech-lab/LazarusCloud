@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
-    List<CloudFile> findAllByFileOwner(LazarusUserDetail fileOwner);
+    List<CloudFile> findAllByFileOwner_Id(Long fileOwnerId);
 
     Optional<CloudFile> findCloudFileByServerFileName(String serverFileName);
 }
