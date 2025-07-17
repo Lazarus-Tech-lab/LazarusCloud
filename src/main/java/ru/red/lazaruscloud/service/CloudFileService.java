@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
+import ru.red.lazaruscloud.dto.cloudDtos.QuotaDto;
 import ru.red.lazaruscloud.mapper.CloudFileMapper;
 import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
+import ru.red.lazaruscloud.model.StorageLimit;
 import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.repository.CloudFileRepository;
 
@@ -24,9 +26,11 @@ public class CloudFileService {
     private String UPLOAD_PATH;
 
     private final CloudFileRepository cloudFileRepository;
+    private final CloudQuotaService cloudQuotaService;
 
-    public CloudFileService(CloudFileRepository cloudFileRepository) {
+    public CloudFileService(CloudFileRepository cloudFileRepository, CloudQuotaService cloudQuotaService) {
         this.cloudFileRepository = cloudFileRepository;
+        this.cloudQuotaService = cloudQuotaService;
     }
 
     public List<CloudFileDto> getAllFilesByUser(LazarusUserDetail userDetails) {
@@ -45,7 +49,7 @@ public class CloudFileService {
             String serverFileName = UUID.randomUUID().toString();
             String serverFileNameExt = UUID.randomUUID() + Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
             Path filePath = uploadDir.resolve(Objects.requireNonNull(serverFileNameExt));
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
 
             CloudFile cloudFile = new CloudFile();
             cloudFile.setName(file.getOriginalFilename());
@@ -56,11 +60,22 @@ public class CloudFileService {
             cloudFile.setIsFolder(false);
             User u = new User();
             u.setId(userDetails.getId());
+            StorageLimit quota = cloudQuotaService.getQuota(u);
             cloudFile.setFileOwner(u);
+            long newUserQuota = quota.getQuotaUsedLimit()+file.getSize();
+            quota.setQuotaUsedLimit(newUserQuota);
+            if (quota.getQuotaLimit() >= newUserQuota) {
+                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
+                cloudQuotaService.setUsedQuota(quota);
+                return CloudFileMapper.toDto(uploadedFile);
+            } else {
+                return null;
+            }
 
-            CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
 
-            return CloudFileMapper.toDto(uploadedFile);
+
+
         } catch (IOException e) {
             return null;
         }
