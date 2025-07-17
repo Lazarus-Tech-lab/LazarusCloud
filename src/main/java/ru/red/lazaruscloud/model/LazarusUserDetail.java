@@ -18,6 +18,8 @@ public class LazarusUserDetail implements UserDetails {
     @Getter
     private final String email;
     private final List<Role> authorities;
+    @Getter
+    private final String rootFolder;
 
     public LazarusUserDetail(User user) {
         this.id = user.getId();
@@ -25,6 +27,7 @@ public class LazarusUserDetail implements UserDetails {
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.authorities = user.getRoles();
+        this.rootFolder = user.getUsername()+"Root";
     }
 
     @Override

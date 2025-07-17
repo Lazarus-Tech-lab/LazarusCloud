@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.red.lazaruscloud.dto.authDtos.JwtResponseDto;
 import ru.red.lazaruscloud.dto.authDtos.LoginRequestDto;
 import ru.red.lazaruscloud.dto.authDtos.RegisterRequestDto;
+import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
 import ru.red.lazaruscloud.model.CloudStorage;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.User;
@@ -49,7 +50,8 @@ public class AuthController {
         user.setEmail(registerRequestDto.email());
         user.setRoles(List.of(Role.ROLE_USER));
         User savedUser = userService.addUser(user);
-        cloudStorageService.createRootUserFolder(savedUser, savedUser.getUsername());
+        CloudFolderDto rootCloudFolder = new CloudFolderDto(0L, savedUser.getUsername()+"Root");
+        cloudStorageService.createRootUserFolder(savedUser, rootCloudFolder);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

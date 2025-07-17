@@ -2,6 +2,8 @@ package ru.red.lazaruscloud.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
+import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.User;
 
@@ -10,7 +12,11 @@ import ru.red.lazaruscloud.model.User;
 public class UserStorageService {
 
     private final CloudFileService cloudFileService;
-    public void createRootUserFolder(User user, String folderName) {
-        cloudFileService.createFolder(user,folderName+"Root", "/");
+    public void createRootUserFolder(User user, CloudFolderDto cloudFolderDto) {
+        cloudFileService.createPhysicalFolder(user,cloudFolderDto);
+    }
+
+    public CloudFile createUserFolder(LazarusUserDetail userDetail, CloudFolderDto cloudFolderDto) {
+        return cloudFileService.createVirtualFolder(userDetail, cloudFolderDto);
     }
 }

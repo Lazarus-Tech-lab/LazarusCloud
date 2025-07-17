@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
+import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
 import ru.red.lazaruscloud.mapper.CloudFileMapper;
 import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
@@ -37,10 +38,10 @@ public class CloudFileService {
         return files;
     }
 
-    public CloudFileDto uploadFile(LazarusUserDetail userDetails, MultipartFile file) {
-
+    public CloudFileDto uploadFile(LazarusUserDetail userDetails, MultipartFile file, long parentId) {
+        //TODO: bug fix parentId
         try {
-            Path uploadDir = Paths.get(UPLOAD_PATH);
+            Path uploadDir = Paths.get(UPLOAD_PATH, userDetails.getRootFolder());
             String serverFileName = UUID.randomUUID().toString();
             String serverFileNameExt = UUID.randomUUID() + Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
             Path filePath = uploadDir.resolve(Objects.requireNonNull(serverFileNameExt));
@@ -51,15 +52,15 @@ public class CloudFileService {
             cloudFile.setPath(filePath.toString());
             cloudFile.setFileSize(file.getSize());
             cloudFile.setServerName(serverFileName);
+            cloudFile.setParentId(parentId);
+            cloudFile.setIsFolder(false);
             User u = new User();
             u.setId(userDetails.getId());
             cloudFile.setFileOwner(u);
 
             CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
 
-            return new CloudFileDto(uploadedFile.getId(), uploadedFile.getName(), uploadedFile.getName(),
-                    uploadedFile.getFileOwner().getId(), uploadedFile.getFileSize(),
-                    uploadedFile.isShared(), uploadedFile.getPath());
+            return CloudFileMapper.toDto(uploadedFile);
         } catch (IOException e) {
             return null;
         }
@@ -74,7 +75,6 @@ public class CloudFileService {
                 uploadedFile.setShared(true);
                 return cloudFileRepository.save(uploadedFile);
             }
-
         }
         return null;
     }
@@ -87,23 +87,53 @@ public class CloudFileService {
         return Optional.empty();
     }
 
-    public void createFolder(User user, String folderName, String path) {
-        Path folderPath = Paths.get(UPLOAD_PATH, folderName);
+    public boolean createPhysicalFolder(User user, CloudFolderDto cloudFolderDto) {
+        Path folderPath = Paths.get(UPLOAD_PATH, cloudFolderDto.folderName());
         try {
             Files.createDirectories(folderPath);
             CloudFile cloudFile = new CloudFile();
             cloudFile.setFileOwner(user);
             cloudFile.setPath(folderPath.toString());
-            cloudFile.setName(folderName);
+            cloudFile.setName(cloudFolderDto.folderName());
             cloudFile.setServerName(UUID.randomUUID().toString());
             cloudFile.setIsFolder(true);
             cloudFile.setShared(false);
+            cloudFile.setIsDeleted(false);
+            cloudFile.setParentId(cloudFolderDto.parentId());
             cloudFileRepository.save(cloudFile);
-
-
+            return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public CloudFile createVirtualFolder(LazarusUserDetail user, CloudFolderDto cloudFolderDto) {
+        String sanitizedFolderName = sanitizeFolderName(cloudFolderDto.folderName());
+
+        Path userBasePath = Paths.get(UPLOAD_PATH, String.valueOf(user.getId())).normalize();
+        Path folderPath = userBasePath.resolve(sanitizedFolderName).normalize();
+
+        if (!folderPath.startsWith(userBasePath)) {
+            throw new SecurityException("User: " + user.getUsername() + " пробовал выйти из песочницы");
+        }
+
+        CloudFile cloudFile = new CloudFile();
+        User u = new User();
+        u.setId(user.getId());
+
+        cloudFile.setFileOwner(u);
+        cloudFile.setPath(folderPath.toString());
+        cloudFile.setName(sanitizedFolderName);
+        cloudFile.setServerName(UUID.randomUUID().toString());
+        cloudFile.setIsFolder(true);
+        cloudFile.setShared(false);
+        cloudFile.setIsDeleted(false);
+        cloudFile.setParentId(cloudFolderDto.parentId());
+
+        return cloudFileRepository.save(cloudFile);
+    }
+
+    private String sanitizeFolderName(String name) {
+        return name.replaceAll("[^a-zA-Z0-9_\\-]", "");
+    }
 }

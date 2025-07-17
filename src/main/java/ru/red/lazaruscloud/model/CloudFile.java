@@ -1,6 +1,7 @@
 package ru.red.lazaruscloud.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,4 +41,7 @@ public class CloudFile {
 
     @Column(name = "server_path", nullable = false)
     private String path;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 }
