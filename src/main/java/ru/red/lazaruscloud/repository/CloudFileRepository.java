@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
     List<CloudFile> findAllByFileOwner_Id(Long fileOwnerId);
 
-    Optional<CloudFile> findCloudFileByServerFileName(String serverFileName);
+    Optional<CloudFile> findCloudFileByServerName(String serverFileName);
 }

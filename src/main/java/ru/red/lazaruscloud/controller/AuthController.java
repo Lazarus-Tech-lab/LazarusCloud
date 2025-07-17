@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import ru.red.lazaruscloud.dto.authDtos.JwtResponseDto;
 import ru.red.lazaruscloud.dto.authDtos.LoginRequestDto;
 import ru.red.lazaruscloud.dto.authDtos.RegisterRequestDto;
+import ru.red.lazaruscloud.model.CloudStorage;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.security.Role;
 import ru.red.lazaruscloud.security.TokenHelper;
 import ru.red.lazaruscloud.service.UserDetailService;
 import ru.red.lazaruscloud.service.UserService;
+import ru.red.lazaruscloud.service.UserStorageService;
 
 import java.util.List;
 
@@ -27,6 +29,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final UserDetailService userDetailService;
     private final TokenHelper tokenHelper;
+    private final UserStorageService cloudStorageService;
 
     @PostMapping("/auth")
     public ResponseEntity<JwtResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
@@ -45,7 +48,8 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(registerRequestDto.password()));
         user.setEmail(registerRequestDto.email());
         user.setRoles(List.of(Role.ROLE_USER));
-        userService.addUser(user);
+        User savedUser = userService.addUser(user);
+        cloudStorageService.createRootUserFolder(savedUser, savedUser.getUsername());
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

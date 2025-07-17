@@ -15,14 +15,20 @@ public class CloudFile {
     private Long id;
 
     @Column(nullable = false, name = "file_name")
-    private String fileName;
+    private String name;
 
     @Column(name = "server_filename", nullable = false)
-    private String serverFileName;
+    private String serverName;
     @Setter
     @ManyToOne
     @JoinColumn(name = "file_owner_id")
     private User fileOwner;
+
+    @Column(nullable = false, name = "isFolder")
+    private Boolean isFolder;
+
+    @Column(name = "parent_id")
+    private Long parentId;
 
     @Column(name = "file_size")
     private long fileSize;
