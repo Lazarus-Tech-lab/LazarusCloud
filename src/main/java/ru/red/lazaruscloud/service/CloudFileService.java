@@ -34,7 +34,7 @@ public class CloudFileService {
     }
 
     public List<CloudFileDto> getAllFilesByUser(LazarusUserDetail userDetails) {
-        List<CloudFile> cloudFiles = cloudFileRepository.findAllByFileOwner_Id(userDetails.getId());
+        List<CloudFile> cloudFiles = cloudFileRepository.findByIsFolderTrueAndFileOwner_Id(userDetails.getId());
         List<CloudFileDto> files = new ArrayList<>();
         for (CloudFile cloudFile : cloudFiles) {
             files.add(CloudFileMapper.toDto(cloudFile));
@@ -72,9 +72,6 @@ public class CloudFileService {
             } else {
                 return null;
             }
-
-
-
 
         } catch (IOException e) {
             return null;
