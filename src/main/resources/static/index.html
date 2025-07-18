@@ -87,9 +87,9 @@
 
     <div class="bottom-panel">
         <div>Status: <span style="color: #0f0;">Connected</span></div>
-        <div>User: <span style="color: var(--accent-color);">anonymous</span></div>
+        <div>User: <span id="userName" class="skeleton" style="width: 100px;">loading</span></div>
+        <div>Storage: <span id="quotaInfo" class="skeleton" style="width: 140px;">loading</span></div>
         <div class="theme-switcher" id="themeSwitcher">🌙 Dark Mode</div>
-        <div>Storage: 15.4GB/50GB</div>
     </div>
 
     <div class="context-menu" id="contextMenu">
@@ -177,6 +177,37 @@
     </div>
 
     <script>
+
+        async function loadUserData() {
+            try {
+                const res = await fetch('/api/userdata', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!res.ok) throw new Error('Unauthorized');
+
+                const data = await res.json();
+
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = data.username;
+                    userNameEl.classList.remove('skeleton');
+                }
+
+                const quotaInfoEl = document.getElementById('quotaInfo');
+                if (quotaInfoEl) {
+                    quotaInfoEl.textContent = `${formatBytes(data.usedQuota)} / ${formatBytes(data.quota)}`;
+                    quotaInfoEl.classList.remove('skeleton');
+                }
+
+            } catch (err) {
+                console.error('[loadUserData]', err);
+                window.location.href = 'auth.html';
+            }
+        }
+        loadUserData();
+
         // Data for each section
         const sectionData = {
             'my-files': [

@@ -27,6 +27,7 @@ public class CloudQuotaService {
 
     public void setUsedQuota(StorageLimit storageLimit) {
         cloudQuotaRepository.save(storageLimit);
-
     }
+
+
 }

@@ -178,11 +178,20 @@ const AuthService = {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                // Если статус не 200-299, пробуем получить ошибку
+                const errorText = await response.text();
+                let errorData;
+                try {
+                    errorData = errorText ? JSON.parse(errorText) : {};
+                } catch {
+                    errorData = { message: errorText || 'Registration failed' };
+                }
                 throw new Error(errorData.message || 'Registration failed');
             }
 
-            return await response.json();
+            // Если статус 200, но тело пустое — просто возвращаем `true`
+            const responseText = await response.text();
+            return responseText ? JSON.parse(responseText) : { success: true };
         } catch (error) {
             console.error('Registration error:', error);
             throw error;
@@ -297,36 +306,102 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Register form
+// Register form handler - complete version
     const registerForm = document.getElementById('registerForm');
+
     if (registerForm) {
-        registerForm.addEventListener('submit', async function(e) {
+        registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            // Clear previous errors
             Validator.hideError('registerUsernameError');
             Validator.hideError('registerEmailError');
             Validator.hideError('registerPasswordError');
             Validator.hideError('registerConfirmPasswordError');
 
+            // Get form values
             const username = document.getElementById('registerUsername').value.trim();
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value.trim();
             const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
 
+            // Validate form
             if (Validator.validateRegisterForm(username, email, password, confirmPassword)) {
                 UIHelpers.setLoading(this, true);
 
                 try {
+                    // Send registration request
                     await AuthService.register(username, email, password);
-                    UIHelpers.showAlert('Registration successful! Please login.');
-                    FormManager.switchForm('login');
+
+                    // Show success notification (top-right popup)
+                    showNotification("🎉 Registration Successful", "You can now log in!");
+
                     FormManager.clearForm('registerForm');
+
+                    // Switch to login form after short delay
+                    setTimeout(() => {
+                        FormManager.switchForm('login');
+                        setTimeout(() => {
+                            document.getElementById('loginUsername').focus();
+                        }, 100);
+                    }, 1500);
+
                 } catch (error) {
-                    Validator.showError('registerEmailError', error.message || 'Registration failed');
+                    const msg = error.message || 'Registration failed';
+                    if (msg.toLowerCase().includes('email')) {
+                        Validator.showError('registerEmailError', msg);
+                    } else if (msg.toLowerCase().includes('username')) {
+                        Validator.showError('registerUsernameError', msg);
+                    } else {
+                        Validator.showError('registerEmailError', msg);
+                    }
                 } finally {
                     UIHelpers.setLoading(this, false);
                 }
             }
         });
     }
+
 });
+
+function showNotification(title, message, time = 'Just now') {
+    const container = document.createElement('div');
+    container.className = 'notification-container';
+    container.style.position = 'fixed';
+    container.style.top = '50px';
+    container.style.right = '10px';
+    container.style.zIndex = '1000';
+    container.style.maxWidth = '300px';
+
+    const notification = document.createElement('div');
+    notification.className = 'notification show';
+    notification.innerHTML = `
+        <button class="notification-close">✕</button>
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+        <div class="notification-time" style="font-size:11px;color:var(--path-color);margin-top:5px;">${time}</div>
+    `;
+
+    // Добавить и показать
+    container.appendChild(notification);
+    document.body.appendChild(container);
+
+    // Закрытие по крестику
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        hideNotification(notification, container);
+    });
+
+    // Автоудаление
+    setTimeout(() => {
+        hideNotification(notification, container);
+    }, 5000);
+}
+
+function hideNotification(notification, container) {
+    notification.classList.remove('show');
+    notification.classList.add('hide');
+    setTimeout(() => {
+        container.remove();
+    }, 300);
+}
+
