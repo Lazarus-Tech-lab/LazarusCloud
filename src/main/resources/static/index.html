@@ -21,6 +21,10 @@
     <div class="container">
         <div class="sidebar" id="sidebar">
             <div class="logo">DOLLARS<span class="cursor"></span></div>
+            <div class="user-info">
+                <div id="userName" class="skeleton" style="height: 18px; width: 100px;">Loading...</div>
+                <div id="quotaInfo" class="skeleton" style="height: 14px; width: 130px; font-size: 11px;">Loading...</div>
+            </div>
             <div class="menu-item active" data-section="my-files">📁 My Files</div>
             <div class="menu-item" data-section="shared">🔗 Shared</div>
             <div class="menu-item" data-section="trash">🗑️ Trash</div>
@@ -87,9 +91,10 @@
 
     <div class="bottom-panel">
         <div>Status: <span style="color: #0f0;">Connected</span></div>
-        <div>User: <span style="color: var(--accent-color);">anonymous</span></div>
+<!--        <div>User: <span id="userName" class="skeleton" style="width: 100px;">Loading...</span></div>-->
+<!--        <div>Storage: <span id="quotaInfo" class="skeleton" style="width: 140px;">Loading...</span></div>-->
         <div class="theme-switcher" id="themeSwitcher">🌙 Dark Mode</div>
-        <div>Storage: 15.4GB/50GB</div>
+
     </div>
 
     <div class="context-menu" id="contextMenu">
@@ -177,6 +182,94 @@
     </div>
 
     <script>
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // другие вызовы...
+            loadUserData();
+            loadFiles();
+        });
+        async function loadUserData() {
+            try {
+                const res = await fetch('/api/userdata', {
+                    method: 'GET',
+                    credentials: 'include' // важно для куки!
+                });
+
+                if (!res.ok) throw new Error('Unauthorized');
+
+                const data = await res.json();
+
+                // Установить имя пользователя
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = data.username;
+                    userNameEl.classList.remove('skeleton');
+                }
+
+                // Установить квоту
+                const quotaInfoEl = document.getElementById('quotaInfo');
+                if (quotaInfoEl) {
+                    quotaInfoEl.textContent = `${formatBytes(data.usedQuota)} / ${formatBytes(data.quota)}`;
+                    quotaInfoEl.classList.remove('skeleton');
+                }
+
+            } catch (err) {
+                console.error('[loadUserData]', err);
+                window.location.href = '/auth.html';
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+
+        async function loadFiles() {
+            const container = document.getElementById('filesContainer');
+            if (!container) return;
+
+            // Очистить и показать скелетоны
+            container.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'file-skeleton';
+                container.appendChild(skeleton);
+            }
+
+            try {
+                const res = await fetch('/api/storage/files', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!res.ok) throw new Error('Unauthorized');
+
+                const files = await res.json();
+
+                container.innerHTML = ''; // очистить скелетоны
+
+                files.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.setAttribute('data-type', file.isFolder ? 'folder' : 'file');
+
+                    fileItem.innerHTML = `
+                <div class="file-icon">${file.isFolder ? '📁' : '📄'}</div>
+                <div class="file-name">${file.filename}</div>
+            `;
+
+                    container.appendChild(fileItem);
+                });
+
+            } catch (err) {
+                console.error('[loadFiles]', err);
+                container.innerHTML = '<div style="color:red;">Failed to load files</div>';
+            }
+        }
+
         // Data for each section
         const sectionData = {
             'my-files': [
