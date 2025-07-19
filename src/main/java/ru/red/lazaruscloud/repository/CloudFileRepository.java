@@ -13,6 +13,8 @@ public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
 
     Optional<CloudFile> findCloudFileByServerName(String serverFileName);
 
+    Optional<CloudFile> findCloudFileByFileOwner_IdAndServerName(Long fileOwnerId, String serverName);
+
     @Query("SELECT cf FROM CloudFile cf WHERE " +
             "cf.fileOwner.id = :userId AND " +
             "cf.parentId = (SELECT cf2.id FROM CloudFile cf2 WHERE " +

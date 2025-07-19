@@ -70,7 +70,7 @@
     <div class="context-menu-separator"></div>
     <div class="context-menu-item" data-action="delete">🗑️ Delete</div>
 </div>
-
+<input hidden type="text" id="current_folder_id">
 <script>
     const fileCache = {};
     let currentView = 'grid';
@@ -153,6 +153,7 @@
             const item = document.createElement('div');
             item.className = 'file-item';
             item.setAttribute('data-type', file.isFolder ? 'folder' : 'file');
+            item.setAttribute('data-uuid', file.serverName);
             item.innerHTML = `
                 <div class="file-icon">${file.isFolder ? '📁' : '📄'}</div>
                 <div class="file-name">${file.filename}</div>
@@ -215,6 +216,7 @@
             const res = await fetch('/api/userdata', { credentials: 'include' });
             if (!res.ok) throw new Error('Unauthorized');
             const data = await res.json();
+            document.getElementById("current_folder_id").value = data.id;
             document.getElementById('userName').textContent = data.username;
             document.getElementById('userName').classList.remove('skeleton');
             document.getElementById('quotaInfo').textContent = `${formatBytes(data.usedQuota)} / ${formatBytes(data.quota)}`;
@@ -310,7 +312,13 @@
 
             case 'download':
                 if (!isFolder) {
-                    showNotification("Download", `Downloading: ${fileName}`);
+                    const uuid = selectedFile.getAttribute('data-uuid');
+                    if (uuid) {
+                        showNotification("Download", `Downloading: ${fileName}`);
+                        window.location.href = `/api/storage/download/${uuid}`;
+                    } else {
+                        showNotification("Error", "No UUID found for file.");
+                    }
                 }
                 break;
 
@@ -340,15 +348,17 @@
         const folderName = prompt("Enter folder name:");
         if (!folderName) return;
 
+
+        alert(folderName)
         try {
             const response = await fetch('/api/storage/createFolder', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json; charset=UTF-8'
                 },
                 body: JSON.stringify({
-                    name: folderName,
-                    path: document.getElementById('currentPath').textContent
+                    folderName: folderName,
+                    parentId: document.getElementById("current_folder_id").value
                 }),
                 credentials: 'include'
             });

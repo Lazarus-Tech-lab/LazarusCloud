@@ -156,6 +156,16 @@ public class CloudFileService {
 
 
     private String sanitizeFolderName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9_\\-]", "");
+        return name.replaceAll("[^\\p{L}\\p{N}_\\- ]", "");
     }
+
+    public CloudFileDto downloadFile(Long ownerId, UUID uuid) {
+        Optional<CloudFile> file = cloudFileRepository.findCloudFileByFileOwner_IdAndServerName(ownerId, uuid.toString());
+        if (file.isPresent()) {
+            CloudFile uploadedFile = file.get();
+            return CloudFileMapper.toDto(uploadedFile);
+        }
+        return null;
+    }
+
 }

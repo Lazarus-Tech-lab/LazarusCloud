@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @RestController
@@ -34,7 +35,7 @@ public class CloudStorageController {
     private final CloudFileService cloudFileService;
     private final UserStorageService userStorageService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload")
     public ResponseEntity<?> uploadFile(@AuthenticationPrincipal LazarusUserDetail userDetails, @Valid @ModelAttribute FileUploadDto fileUploadDto) {
         return new ResponseEntity<>(cloudFileService.uploadFile(userDetails, fileUploadDto.file(), fileUploadDto.parentFolderId()), HttpStatus.CREATED);
     }
@@ -47,6 +48,24 @@ public class CloudStorageController {
     @PostMapping("/file/share/{fileId}")
     public ResponseEntity<?> setFileIsShared(@PathVariable long fileId, @AuthenticationPrincipal LazarusUserDetail userDetails) {
         return ResponseEntity.ok(cloudFileService.shareFile(fileId, userDetails));
+    }
+
+    @GetMapping("/download/{uuid}")
+    public ResponseEntity<?> downloadPrivateFile(@AuthenticationPrincipal LazarusUserDetail userDetails, @PathVariable UUID uuid) throws MalformedURLException {
+        CloudFileDto cf = cloudFileService.downloadFile(userDetails.getId(), uuid);
+        if(cf != null) {
+            Path fp = Paths.get(cf.path());
+            Resource res = new UrlResource(fp.toUri());
+            if (res.exists() || res.isReadable()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cf.filename() + "\"")
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(res);
+            } else {
+                throw new RuntimeException("Файл не найден или невозможно прочитать");
+            }
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/file/{fileName}")
@@ -68,9 +87,11 @@ public class CloudStorageController {
     }
 
 
-    @PostMapping("/createFolder")
+    @PostMapping(value = "/createFolder", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CloudFileDto> createFolder(@AuthenticationPrincipal LazarusUserDetail userDetail, @Valid @RequestBody CloudFolderDto cloudFolderDto) {
         CloudFile cloudFile = userStorageService.createUserFolder(userDetail, cloudFolderDto);
+        System.out.println("Имя папки: " + cloudFolderDto.folderName());
         if (cloudFile != null) {
             return new ResponseEntity<>(CloudFileMapper.toDto(cloudFile), HttpStatus.CREATED);
         }
