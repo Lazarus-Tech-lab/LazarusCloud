@@ -168,25 +168,19 @@ const AuthService = {
     },
 
     async register(username, email, password) {
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, email, password })
-            });
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password }),
+            credentials: 'include'
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Registration failed');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Registration failed');
         }
+
+        // всё — дальше ничего не нужно (код 200 без тела — норм)
     },
 
     setAuthCookies(accessToken, refreshToken) {
@@ -298,35 +292,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Register form
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-        registerForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+    registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-            Validator.hideError('registerUsernameError');
-            Validator.hideError('registerEmailError');
-            Validator.hideError('registerPasswordError');
-            Validator.hideError('registerConfirmPasswordError');
+        Validator.hideError('registerUsernameError');
+        Validator.hideError('registerEmailError');
+        Validator.hideError('registerPasswordError');
+        Validator.hideError('registerConfirmPasswordError');
 
-            const username = document.getElementById('registerUsername').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value.trim();
-            const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+        const username = document.getElementById('registerUsername').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value.trim();
+        const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
 
-            if (Validator.validateRegisterForm(username, email, password, confirmPassword)) {
-                UIHelpers.setLoading(this, true);
+        if (Validator.validateRegisterForm(username, email, password, confirmPassword)) {
+            UIHelpers.setLoading(this, true);
 
-                try {
-                    await AuthService.register(username, email, password);
-                    UIHelpers.showAlert('Registration successful! Please login.');
-                    FormManager.switchForm('login');
-                    FormManager.clearForm('registerForm');
-                } catch (error) {
-                    Validator.showError('registerEmailError', error.message || 'Registration failed');
-                } finally {
-                    UIHelpers.setLoading(this, false);
+            try {
+                await AuthService.register(username, email, password);
+
+                // ✅ Показываем уведомление
+                showNotification("🎉 Успешно!", "Аккаунт создан. Войдите в систему");
+
+                // ✅ Плавный переход на логин
+                FormManager.switchForm('login');
+
+                setTimeout(() => {
+                    const loginForm = document.getElementById('loginForm');
+                    if (loginForm) loginForm.classList.add('fade-in');
+
+                    document.getElementById('loginUsername')?.focus();
+                }, 400);
+
+            } catch (error) {
+                const msg = error.message || 'Registration failed';
+                if (msg.toLowerCase().includes('email')) {
+                    Validator.showError('registerEmailError', msg);
+                } else if (msg.toLowerCase().includes('username')) {
+                    Validator.showError('registerUsernameError', msg);
+                } else {
+                    Validator.showError('registerEmailError', msg);
                 }
+            } finally {
+                UIHelpers.setLoading(this, false);
             }
-        });
-    }
+        }
+    });
 });
+
+function showNotification(title, message, time = 'Now') {
+    const container = document.createElement('div');
+    container.className = 'notification-container';
+
+    const notification = document.createElement('div');
+    notification.className = 'notification fade-notification';
+    notification.innerHTML = `
+        <button class="notification-close">✕</button>
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+        <div class="notification-time" style="font-size:11px;color:var(--path-color);margin-top:5px;">${time}</div>
+    `;
+
+    container.appendChild(notification);
+    document.body.appendChild(container);
+
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        container.remove();
+    });
+
+    setTimeout(() => {
+        notification.classList.add('hide');
+        setTimeout(() => container.remove(), 300);
+    }, 4000);
+}

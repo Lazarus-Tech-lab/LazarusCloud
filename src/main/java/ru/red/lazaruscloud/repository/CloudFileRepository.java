@@ -1,6 +1,8 @@
 package ru.red.lazaruscloud.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 
@@ -8,7 +10,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
-    List<CloudFile> findAllByFileOwner_Id(Long fileOwnerId);
-    List<CloudFile> findByIsFolderTrueAndFileOwner_Id(Long fileOwnerId);
+
     Optional<CloudFile> findCloudFileByServerName(String serverFileName);
+
+    @Query("SELECT cf FROM CloudFile cf WHERE " +
+            "cf.fileOwner.id = :userId AND " +
+            "cf.parentId = (SELECT cf2.id FROM CloudFile cf2 WHERE " +
+            "cf2.fileOwner.id = :userId AND cf2.isFolder = true AND cf2.parentId = 0)")
+    List<CloudFile> findUserFilesWithRootParent(@Param("userId") Long userId);
+
+
+    @Query("select cf from CloudFile cf WHERE cf.fileOwner.id = :userId AND cf.isShared = true")
+    Optional<List<CloudFile>> findSharedFiles(@Param("userId") Long userId);
 }

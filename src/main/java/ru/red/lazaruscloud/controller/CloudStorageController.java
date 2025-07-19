@@ -23,6 +23,7 @@ import ru.red.lazaruscloud.service.UserStorageService;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -74,5 +75,10 @@ public class CloudStorageController {
             return new ResponseEntity<>(CloudFileMapper.toDto(cloudFile), HttpStatus.CREATED);
         }
         return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
+    @GetMapping("/getShared")
+    public ResponseEntity<List<CloudFileDto>> getSharedFiles(@AuthenticationPrincipal LazarusUserDetail userDetail) {
+        return new ResponseEntity<>(userStorageService.getSharedFiles(userDetail.getId()), HttpStatus.OK);
     }
 }

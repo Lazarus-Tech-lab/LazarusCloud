@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CloudFileService {
@@ -34,11 +35,14 @@ public class CloudFileService {
     }
 
     public List<CloudFileDto> getAllFilesByUser(LazarusUserDetail userDetails) {
-        List<CloudFile> cloudFiles = cloudFileRepository.findByIsFolderTrueAndFileOwner_Id(userDetails.getId());
+
         List<CloudFileDto> files = new ArrayList<>();
-        for (CloudFile cloudFile : cloudFiles) {
-            files.add(CloudFileMapper.toDto(cloudFile));
-        }
+
+
+        List<CloudFile> filess = cloudFileRepository.findUserFilesWithRootParent(userDetails.getId());
+             for (CloudFile cloudFile : filess) {
+                 files.add(CloudFileMapper.toDto(cloudFile));
+             }
         return files;
     }
 
@@ -144,6 +148,12 @@ public class CloudFileService {
 
         return cloudFileRepository.save(cloudFile);
     }
+
+    public List<CloudFileDto> getSharedFilesByOwnerId(Long ownerId) {
+        Optional<List<CloudFile>> files = cloudFileRepository.findSharedFiles(ownerId);
+        return files.map(cloudFiles -> cloudFiles.stream().map(CloudFileMapper::toDto).collect(Collectors.toList())).orElseGet(ArrayList::new);
+    }
+
 
     private String sanitizeFolderName(String name) {
         return name.replaceAll("[^a-zA-Z0-9_\\-]", "");

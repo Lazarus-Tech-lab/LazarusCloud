@@ -883,3 +883,103 @@ input:checked + .toggle-slider:before {
     background-size: 200% 100%;
     height: 70px;
 }
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-notification {
+    transform: translateX(110%);
+    animation: fadeSlideIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeSlideIn {
+    to {
+        transform: translateX(0);
+    }
+}
+.files-action-bar {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--file-border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+}
+
+.action-btn:hover {
+    background: var(--file-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 100, 255, 0.3);
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.action-btn:hover::before {
+    left: 100%;
+}
+
+.action-icon {
+    font-size: 14px;
+}
+
+.action-text {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .files-action-bar {
+        padding: 6px 8px;
+    }
+
+    .action-btn {
+        padding: 6px 8px;
+    }
+
+    .action-text {
+        display: none;
+    }
+
+    .action-icon {
+        margin-right: 0;
+    }
+}
