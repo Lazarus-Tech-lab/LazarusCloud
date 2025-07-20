@@ -34,6 +34,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = getTokenFromRequest(request);
 
+        if(request.getRequestURI().equals("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (token == null) {
             filterChain.doFilter(request, response);
             return;

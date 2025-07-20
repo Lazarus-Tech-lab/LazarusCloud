@@ -3,6 +3,7 @@ package ru.red.lazaruscloud.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.file.ConfigurationSource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -176,6 +177,22 @@ public class CloudStorageController {
         }
         return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
+
+    @GetMapping("/raw/{uuid}")
+    public ResponseEntity<Resource> getRawFile(@PathVariable String uuid) throws IOException {
+        CloudFile file = cloudFileService.getFileByServerName(uuid);
+        Path filePath = Paths.get(file.getPath());
+
+        MediaType type = Files.probeContentType(filePath) != null ?
+                MediaType.parseMediaType(Files.probeContentType(filePath)) :
+                MediaType.APPLICATION_OCTET_STREAM;
+
+        Resource resource = new FileSystemResource(filePath);
+        return ResponseEntity.ok()
+                .contentType(type)
+                .body(resource);
+    }
+
 
     @GetMapping("/getShared")
     public ResponseEntity<List<CloudFileDto>> getSharedFiles(@AuthenticationPrincipal LazarusUserDetail userDetail) {

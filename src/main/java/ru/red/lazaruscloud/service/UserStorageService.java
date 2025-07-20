@@ -35,7 +35,8 @@ public class UserStorageService {
         User u = new User();
         u.setId(userDetail.getId());
         StorageLimit st = cloudQuotaService.getQuota(u);
-        return new UserDataDto(userDetail.getId(), userDetail.getUsername(), st.getQuotaLimit(), st.getQuotaUsedLimit());
+        Long rootId = cloudFileService.getRootFolderId(userDetail.getId());
+        return new UserDataDto(userDetail.getId(), userDetail.getUsername(), st.getQuotaLimit(), st.getQuotaUsedLimit(), rootId);
     }
 
     public List<CloudFileDto> getSharedFiles(Long ownerId) {

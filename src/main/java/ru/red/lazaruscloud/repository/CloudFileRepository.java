@@ -28,6 +28,8 @@ public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
             "(select cf2.id from CloudFile cf2 where cf2.serverName = :folderName) AND cf.isDeleted = false")
     Optional<List<CloudFile>> findFolderFiles(Long ownerId, String folderName);
 
+    CloudFile findCloudFilesByFileOwner_IdAndParentId(Long fileOwnerId, Long parentId);
+
     Optional<CloudFile> findCloudFilesByServerName(String serverName);
 
 

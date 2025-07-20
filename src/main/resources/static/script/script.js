@@ -377,4 +377,117 @@ function showNotification(title, message, time = "Now") {
 
     return notification;
 }
+function openPreviewModal(fileId, fileName, ext) {
+    const url = `/api/storage/raw/${fileId}`;
+    const modal = document.getElementById('previewModal');
+    const content = document.getElementById('previewContent');
+    const title = document.getElementById('previewTitle');
+
+    const isAudio = ['mp3', 'wav', 'ogg'].includes(ext);
+    const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext);
+    const isVideo = ['mp4', 'webm', 'mkv'].includes(ext);
+    const isText = ext === 'txt';
+
+    if (isAudio) {
+        // АУДИО — проигрываем в боковой панели
+        const audio = document.getElementById('audioPlayer');
+        const label = document.getElementById('audioTitle');
+        const box = document.getElementById('audioPlayerContainer');
+
+        audio.src = url;
+        audio.play().catch(console.warn);
+        label.textContent = fileName;
+        box.classList.remove('hidden');
+
+        // закрываем предпросмотр, если был открыт
+        //modal.classList.remove('active');
+        return;
+    }
+
+    // Для всех остальных — открываем предпросмотр
+    content.innerHTML = '';
+    title.textContent = fileName;
+
+    if (isImage) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '100%';
+        content.appendChild(img);
+    } else if (isVideo) {
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.style.width = '100%';
+        content.appendChild(video);
+    } else if (isText) {
+        fetch(url).then(res => res.text()).then(text => {
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            pre.style.whiteSpace = 'pre-wrap';
+            content.appendChild(pre);
+        });
+    } else {
+        content.textContent = 'Unsupported file type';
+    }
+
+    // Показываем окно
+    modal.classList.add('active');
+}
+
+
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.remove('active');
+}
+
+(function enablePreviewResizeAndDrag() {
+    const modal = document.getElementById('previewModal');
+    const resizer = document.getElementById('previewResizer');
+    const header = modal.querySelector('.preview-header');
+
+    // RESIZE
+    resizer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        document.onmousemove = (ev) => {
+            modal.style.width = (ev.clientX - modal.offsetLeft) + 'px';
+            modal.style.height = (ev.clientY - modal.offsetTop) + 'px';
+        };
+        document.onmouseup = () => {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    });
+
+    // DRAG
+    header.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const rect = modal.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+
+        document.onmousemove = (ev) => {
+            modal.style.left = (ev.clientX - offsetX) + 'px';
+            modal.style.top = (ev.clientY - offsetY) + 'px';
+            modal.style.right = 'auto';
+            modal.style.bottom = 'auto';
+            modal.style.position = 'fixed';
+        };
+        document.onmouseup = () => {
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    });
+})();
+
+document.getElementById('fileSearchInput').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+
+    const allFiles = fileCache[currentPath] || [];
+    const filtered = allFiles.filter(file => file.filename.toLowerCase().includes(query));
+
+    renderFiles(filtered);
+});
+
+
 

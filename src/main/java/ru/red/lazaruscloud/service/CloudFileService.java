@@ -49,6 +49,11 @@ public class CloudFileService {
         return files;
     }
 
+    public Long getRootFolderId(Long userId) {
+        CloudFile cf = cloudFileRepository.findCloudFilesByFileOwner_IdAndParentId(userId, 0L);
+        return cf.getId();
+    }
+
     public CloudFileDto uploadFile(LazarusUserDetail userDetails, MultipartFile file, long parentId) {
         //TODO: bug fix parentId
         try {
@@ -118,7 +123,7 @@ public class CloudFileService {
             cloudFile.setIsFolder(true);
             cloudFile.setShared(false);
             cloudFile.setIsDeleted(false);
-            cloudFile.setParentId(cloudFolderDto.parentId());
+            cloudFile.setParentId(0L);
             cloudFileRepository.save(cloudFile);
             return true;
         } catch (IOException e) {
@@ -259,5 +264,10 @@ public class CloudFileService {
             return fileList.stream().map(CloudFileMapper::toDto).collect(Collectors.toList());
         }
         return new ArrayList<>();
+    }
+
+    public CloudFile getFileByServerName(String uuid) {
+       Optional<CloudFile> cf = cloudFileRepository.findCloudFilesByServerName(uuid);
+        return cf.orElse(null);
     }
 }
