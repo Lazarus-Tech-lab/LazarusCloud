@@ -16,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import ru.red.lazaruscloud.security.HtmlBlockFilter;
 import ru.red.lazaruscloud.security.JwtAuthFilter;
 
 @Configuration
@@ -25,7 +24,6 @@ import ru.red.lazaruscloud.security.JwtAuthFilter;
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
-    private final HtmlBlockFilter htmlBlockFilter;
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
@@ -33,12 +31,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth", "/style/**", "/script/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/api/auth", "/api/logout", "/api/register", "/api/login/jwt", "/api/storage/file/*").permitAll()
+                        .requestMatchers("/auth").permitAll()
+                        .requestMatchers("/api/auth", "/api/logout", "/api/register", "/api/storage/file/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
-               // .addFilterBefore(htmlBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
 
