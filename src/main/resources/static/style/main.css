@@ -113,7 +113,6 @@ body {
     position: fixed;
     top: 10px;
     left: 10px;
-    z-index: 100;
     background: var(--burger-bg);
     border: 1px solid var(--burger-border);
     color: var(--accent-color);
@@ -861,6 +860,21 @@ input:checked + .toggle-slider:before {
         top: 10px;
         right: 10px;
     }
+    .files-action-bar {
+        padding: 6px 8px;
+    }
+
+    .action-btn {
+        padding: 6px 8px;
+    }
+
+    .action-text {
+        display: none;
+    }
+
+    .action-icon {
+        margin-right: 0;
+    }
 }
 
 .skeleton {
@@ -967,24 +981,6 @@ input:checked + .toggle-slider:before {
 
 .action-text {
     white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .files-action-bar {
-        padding: 6px 8px;
-    }
-
-    .action-btn {
-        padding: 6px 8px;
-    }
-
-    .action-text {
-        display: none;
-    }
-
-    .action-icon {
-        margin-right: 0;
-    }
 }
 
 .file-properties-panel {

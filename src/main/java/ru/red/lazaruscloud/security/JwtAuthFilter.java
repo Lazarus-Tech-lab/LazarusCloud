@@ -26,21 +26,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final TokenHelper tokenHelper;
     private final UserDetailService userDetailService;
 
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-
-        return path.startsWith("/style/")
-                || path.startsWith("/script/")
-                || path.equals("/")
-                || path.equals("/index.html")
-                || path.equals("/auth.html")
-                || path.endsWith(".css")
-                || path.endsWith(".js")
-                || path.endsWith(".html")
-                || path.endsWith(".ico");
-    }
+//
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//        String path = request.getRequestURI();
+//
+//        return path.startsWith("/style/")
+//                || path.startsWith("/script/")
+//                || path.equals("/")
+//                || path.equals("/index.html")
+//                || path.equals("/auth.html")
+//                || path.endsWith(".css")
+//                || path.endsWith(".js")
+//                || path.endsWith(".html")
+//                || path.endsWith(".ico");
+//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
