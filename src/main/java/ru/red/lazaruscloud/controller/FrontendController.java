@@ -15,4 +15,9 @@ public class FrontendController {
     public String auth(){
         return "forward:/auth.html";
     }
+
+    @GetMapping("/")
+    public String base(){
+        return "forward:/auth";
+    }
 }

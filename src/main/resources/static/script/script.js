@@ -179,8 +179,6 @@ const AuthService = {
             const text = await res.text();
             throw new Error(text || 'Registration failed');
         }
-
-        // всё — дальше ничего не нужно (код 200 без тела — норм)
     },
 
     setAuthCookies(accessToken, refreshToken) {
@@ -195,7 +193,6 @@ const AuthService = {
     }
 };
 
-// UI Helpers module
 const UIHelpers = {
     initFormSwitches() {
         document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -281,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     await AuthService.login(username, password);
                     UIHelpers.showAlert('Login successful! Redirecting...');
-                    setTimeout(() => window.location.href = '/', 1500);
+                    setTimeout(() => window.location.href = '/home', 1500);
                 } catch (error) {
                     Validator.showError('loginPasswordError', error.message || 'Login failed');
                 } finally {
@@ -340,29 +337,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function showNotification(title, message, time = 'Now') {
-    const container = document.createElement('div');
-    container.className = 'notification-container';
-
+function showNotification(title, message, time = "Now") {
     const notification = document.createElement('div');
     notification.className = 'notification fade-notification';
     notification.innerHTML = `
-        <button class="notification-close">✕</button>
         <div class="notification-title">${title}</div>
         <div class="notification-message">${message}</div>
-        <div class="notification-time" style="font-size:11px;color:var(--path-color);margin-top:5px;">${time}</div>
+        <div class="notification-time">${time}</div>
+        <div class="notification-progress"></div>
+        <button class="notification-close">&times;</button>
     `;
 
-    container.appendChild(notification);
-    document.body.appendChild(container);
+    document.getElementById('notificationContainer').appendChild(notification);
+
+    notification.updateProgress = (percent) => {
+        const progressBar = notification.querySelector('.notification-progress');
+        progressBar.style.width = `${percent}%`;
+        progressBar.style.backgroundColor = percent === 100 ? '#4CAF50' : '#2196F3';
+    };
+
+    notification.updateMessage = (newMessage) => {
+        notification.querySelector('.notification-message').textContent = newMessage;
+    };
+
+    notification.updateTitle = (newTitle) => {
+        notification.querySelector('.notification-title').textContent = newTitle;
+    };
+
+    notification.autoClose = (ms = 5000) => {
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 300);
+        }, ms);
+    };
 
     notification.querySelector('.notification-close').addEventListener('click', () => {
-        container.remove();
+        notification.remove();
     });
 
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => container.remove(), 300);
-    }, 4000);
+    return notification;
 }
 

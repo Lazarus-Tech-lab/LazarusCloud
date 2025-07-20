@@ -16,7 +16,7 @@
 </div>
 <div class="container">
     <div class="sidebar" id="sidebar">
-        <div class="logo">DOLLARS<span class="cursor"></span></div>
+        <div class="logo">LazarusCloud<span class="cursor"></span></div>
         <div class="user-info">
             <div id="userName" class="skeleton" style="height: 18px; width: 100px;">Loading...</div>
             <div id="quotaInfo" class="skeleton" style="height: 14px; width: 130px; font-size: 11px;">Loading...</div>
@@ -579,46 +579,7 @@
     document.getElementById('fileInput').addEventListener('change', handleFileUpload);
 
     // Добавьте этот код в функцию showNotification
-    function showNotification(title, message, time = "Now") {
-        const notification = document.createElement('div');
-        notification.className = 'notification fade-notification';
-        notification.innerHTML = `
-        <div class="notification-title">${title}</div>
-        <div class="notification-message">${message}</div>
-        <div class="notification-time">${time}</div>
-        <div class="notification-progress"></div>
-        <button class="notification-close">&times;</button>
-    `;
 
-        document.getElementById('notificationContainer').appendChild(notification);
-
-        notification.updateProgress = (percent) => {
-            const progressBar = notification.querySelector('.notification-progress');
-            progressBar.style.width = `${percent}%`;
-            progressBar.style.backgroundColor = percent === 100 ? '#4CAF50' : '#2196F3';
-        };
-
-        notification.updateMessage = (newMessage) => {
-            notification.querySelector('.notification-message').textContent = newMessage;
-        };
-
-        notification.updateTitle = (newTitle) => {
-            notification.querySelector('.notification-title').textContent = newTitle;
-        };
-
-        notification.autoClose = (ms = 5000) => {
-            setTimeout(() => {
-                notification.classList.add('hide');
-                setTimeout(() => notification.remove(), 300);
-            }, ms);
-        };
-
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.remove();
-        });
-
-        return notification;
-    }
 
 
     function updateBreadcrumb() {
@@ -702,5 +663,7 @@
         }
     }
 </script>
+
+<script src="./script/script.js"></script>
 </body>
 </html>

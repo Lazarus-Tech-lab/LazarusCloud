@@ -118,10 +118,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private void sendError(HttpServletResponse response, String message, HttpStatus status) throws IOException {
+        Cookie cookie = new Cookie("access_token", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Удалить
+        response.addCookie(cookie);
+
         response.setContentType("application/json");
         response.setStatus(status.value());
         response.getWriter().write(
                 String.format("{\"error\": \"%s\", \"message\": \"%s\"}", status.getReasonPhrase(), message)
         );
     }
+
 }
