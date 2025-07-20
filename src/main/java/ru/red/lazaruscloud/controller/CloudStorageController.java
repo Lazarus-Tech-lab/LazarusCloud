@@ -171,7 +171,6 @@ public class CloudStorageController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CloudFileDto> createFolder(@AuthenticationPrincipal LazarusUserDetail userDetail, @Valid @RequestBody CloudFolderDto cloudFolderDto) {
         CloudFile cloudFile = userStorageService.createUserFolder(userDetail, cloudFolderDto);
-        System.out.println("Имя папки: " + cloudFolderDto.folderName());
         if (cloudFile != null) {
             return new ResponseEntity<>(CloudFileMapper.toDto(cloudFile), HttpStatus.CREATED);
         }
@@ -186,5 +185,19 @@ public class CloudStorageController {
     @GetMapping("/folder/{uuid}")
     public ResponseEntity<?> getFilesFolder(@AuthenticationPrincipal LazarusUserDetail userDetail, @PathVariable UUID uuid) {
         return new ResponseEntity<>(cloudFileService.getFolderWithFiles(userDetail.getId(), uuid), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{uuid}")
+    public ResponseEntity<?> softDelete(@AuthenticationPrincipal LazarusUserDetail userDetail, @PathVariable UUID uuid) {
+        return new ResponseEntity<>(userStorageService.softDelete(userDetail.getId(), uuid.toString()), HttpStatus.OK);
+    }
+
+    @GetMapping("/trash")
+    public ResponseEntity<?> getTrash(@AuthenticationPrincipal LazarusUserDetail userDetail) {
+        return new ResponseEntity<>(userStorageService.getTrash(userDetail.getId()), HttpStatus.OK);
+    }
+    @GetMapping("/delete/hard/{uuid}")
+    public ResponseEntity<?> hardDelete(@AuthenticationPrincipal LazarusUserDetail userDetail) {
+        return null;
     }
 }

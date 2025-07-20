@@ -42,7 +42,9 @@ public class CloudFileService {
 
         List<CloudFile> filess = cloudFileRepository.findUserFilesWithRootParent(userDetails.getId());
              for (CloudFile cloudFile : filess) {
-                 files.add(CloudFileMapper.toDto(cloudFile));
+
+                     files.add(CloudFileMapper.toDto(cloudFile));
+
              }
         return files;
     }
@@ -214,6 +216,7 @@ public class CloudFileService {
             cloudFile.setServerName(serverFileName);
             cloudFile.setParentId(parentId);
             cloudFile.setIsFolder(false);
+            cloudFile.setIsDeleted(false);
             User u = new User();
             u.setId(userDetails.getId());
 
@@ -236,4 +239,25 @@ public class CloudFileService {
         }
     }
 
+    public CloudFileDto softDelete(long ownerId, String uuid) {
+        Optional<CloudFile> cfgto = cloudFileRepository.findCloudFileByFileOwner_IdAndServerName(ownerId, uuid);
+        if (cfgto.isPresent()) {
+            CloudFile uploadedFile = cfgto.get();
+            uploadedFile.setIsDeleted(true);
+            cloudFileRepository.save(uploadedFile);
+
+            return CloudFileMapper.toDto(uploadedFile);
+        }
+
+        return null;
+    }
+
+    public List<CloudFileDto> getTrash(long ownerId) {
+        Optional<List<CloudFile>> files = cloudFileRepository.getCloudFilesByFileOwner_idAndIsDeleted(ownerId, true);
+        if (files.isPresent()) {
+            List<CloudFile> fileList = files.get();
+            return fileList.stream().map(CloudFileMapper::toDto).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
 }

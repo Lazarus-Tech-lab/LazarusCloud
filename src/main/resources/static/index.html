@@ -242,8 +242,10 @@
                     url = '/api/storage/getShared';
                     break;
                 case 'my-files':
-                case 'trash':
                     url = '/api/storage/files';
+                    break;
+                case 'trash':
+                    url = '/api/storage/trash';
                     break;
                 default:
                     container.innerHTML = '<div style="color:red;">Unknown section</div>';
@@ -387,6 +389,17 @@
 
             case 'delete':
                 if (confirm(`Delete ${isFolder ? 'folder' : 'file'}: ${fileName}?`)) {
+                    const response = await fetch(`/api/storage/delete/${fileId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json; charset=UTF-8'
+                        },
+                        credentials: 'include'
+                    })
+
+
+                    if (!response.ok) throw new Error('Failed to delete');
+
                     showNotification("Deleted", `${fileName} was deleted`);
                 }
                 break;

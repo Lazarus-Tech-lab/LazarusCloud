@@ -45,4 +45,12 @@ public class UserStorageService {
     public FolderDto getFolderFiles(Long ownerId, UUID folderId) {
         return cloudFileService.getFolderWithFiles(ownerId, folderId);
     }
+
+    public CloudFileDto softDelete(long ownerId, String uuid) {
+        return cloudFileService.softDelete(ownerId, uuid);
+    }
+
+    public List<CloudFileDto> getTrash(long ownerId) {
+        return cloudFileService.getTrash(ownerId);
+    }
 }
