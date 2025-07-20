@@ -1,4 +1,7 @@
 /* Основные переменные и стили */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 :root {
     --bg-color: #0a0a0a;
     --text-color: #e0e0e0;
@@ -57,7 +60,7 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     margin: 0;
     padding: 0;
     height: 100vh;
@@ -98,7 +101,7 @@ body {
     background-color: var(--file-bg);
     border: 1px solid var(--file-border);
     border-radius: 4px;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     font-size: 13px;
     color: var(--text-color);
     text-align: center;
@@ -180,7 +183,7 @@ body {
     color: var(--accent-color);
     padding: 5px 10px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     display: flex;
     gap: 5px;
 }
@@ -293,7 +296,7 @@ body {
     color: var(--accent-color);
     padding: 3px 8px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
 }
 
 .context-menu {
@@ -448,7 +451,7 @@ input:checked + .toggle-slider:before {
     background-color: var(--auth-input-bg);
     border: 1px solid var(--auth-input-border);
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     border-radius: 3px;
     transition: all 0.2s;
     font-size: 14px;
@@ -466,7 +469,7 @@ input:checked + .toggle-slider:before {
     border: none;
     padding: 10px 20px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     font-weight: bold;
     transition: background 0.3s;
     margin-top: 20px;
@@ -577,7 +580,7 @@ input:checked + .toggle-slider:before {
     color: var(--text-color);
     cursor: pointer;
     transition: all 0.3s;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
 }
 
 .modal-btn-primary {
@@ -602,7 +605,7 @@ input:checked + .toggle-slider:before {
     background-color: var(--auth-input-bg);
     border: 1px solid var(--auth-input-border);
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     border-radius: 3px;
     transition: all 0.2s;
     font-size: 14px;
@@ -724,7 +727,7 @@ input:checked + .toggle-slider:before {
     background-color: var(--auth-input-bg);
     border: 1px solid var(--auth-input-border);
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     border-radius: 3px;
     transition: all 0.2s;
     font-size: 14px;
@@ -745,7 +748,7 @@ input:checked + .toggle-slider:before {
     border: none;
     border-radius: 3px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     font-weight: bold;
     transition: background 0.2s;
     margin-top: 10px;
@@ -783,7 +786,7 @@ input:checked + .toggle-slider:before {
     color: var(--accent-color);
     padding: 4px 8px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
     border-radius: 3px;
     z-index: 100;
     font-size: 13px;
@@ -934,7 +937,7 @@ input:checked + .toggle-slider:before {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    font-family: 'Courier New', monospace;
+    font-family: "Roboto", sans-serif;
 }
 
 .action-btn:hover {
