@@ -365,3 +365,4 @@ function showNotification(title, message, time = 'Now') {
         setTimeout(() => container.remove(), 300);
     }, 4000);
 }
+

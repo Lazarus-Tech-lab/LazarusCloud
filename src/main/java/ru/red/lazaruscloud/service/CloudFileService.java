@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
+import ru.red.lazaruscloud.dto.cloudDtos.FolderDto;
 import ru.red.lazaruscloud.dto.cloudDtos.QuotaDto;
 import ru.red.lazaruscloud.mapper.CloudFileMapper;
 import ru.red.lazaruscloud.model.CloudFile;
@@ -166,6 +167,73 @@ public class CloudFileService {
             return CloudFileMapper.toDto(uploadedFile);
         }
         return null;
+    }
+
+    public List<CloudFileDto> getFolderFiles(Long ownerId, UUID folderId) {
+        Optional<List<CloudFile>> files = cloudFileRepository.findFolderFiles(ownerId, folderId.toString());
+        return files.map(cloudFiles -> cloudFiles.stream().map(CloudFileMapper::toDto).collect(Collectors.toList())).orElseGet(ArrayList::new);
+    }
+
+    public FolderDto getFolderWithFiles(Long ownerId, UUID folderUuid) {
+        Optional<CloudFile> folder = cloudFileRepository.findCloudFilesByServerName(folderUuid.toString());
+        if (folder.isEmpty()) {
+            throw new RuntimeException("Folder not found");
+        }
+
+        Long parentId = folder.get().getId();
+
+        List<CloudFileDto> fileDtos = cloudFileRepository.findFolderFiles(ownerId, folderUuid.toString())
+                .orElseGet(ArrayList::new)
+                .stream()
+                .map(CloudFileMapper::toDto)
+                .collect(Collectors.toList());
+
+        return new FolderDto(parentId, folderUuid, fileDtos);
+    }
+
+    public CloudFileDto saveChunkedFile(LazarusUserDetail userDetails, Path assembledFile, String originalName, Long parentId) {
+        try {
+            Path uploadDir = Paths.get(UPLOAD_PATH, userDetails.getRootFolder());
+            Files.createDirectories(uploadDir);
+
+            String serverFileName = UUID.randomUUID().toString();
+            String ext = "";
+
+            if (originalName.contains(".")) {
+                ext = originalName.substring(originalName.lastIndexOf("."));
+            }
+
+            String serverFileNameExt = UUID.randomUUID() + ext;
+            Path filePath = uploadDir.resolve(serverFileNameExt);
+            Files.move(assembledFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            CloudFile cloudFile = new CloudFile();
+            cloudFile.setName(originalName);
+            cloudFile.setPath(filePath.toString());
+            cloudFile.setFileSize(Files.size(filePath));
+            cloudFile.setServerName(serverFileName);
+            cloudFile.setParentId(parentId);
+            cloudFile.setIsFolder(false);
+            User u = new User();
+            u.setId(userDetails.getId());
+
+            StorageLimit quota = cloudQuotaService.getQuota(u);
+            long newUserQuota = quota.getQuotaUsedLimit() + Files.size(filePath);
+            if (quota.getQuotaLimit() < newUserQuota) {
+                Files.deleteIfExists(filePath);
+                return null;
+            }
+
+            cloudFile.setFileOwner(u);
+            CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
+            quota.setQuotaUsedLimit(newUserQuota);
+            cloudQuotaService.setUsedQuota(quota);
+
+            return CloudFileMapper.toDto(uploadedFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

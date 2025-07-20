@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="noise"></div>
-<div class="burger" id="burger">☰</div>
+<div class="burger" id="burger" onclick="toggleSidebar()">☰</div>
 <div class="view-switcher" id="viewSwitcher">
     <button class="view-btn active" data-view="grid">☷ Grid</button>
     <button class="view-btn" data-view="list">☰ List</button>
@@ -68,11 +68,47 @@
     <div class="context-menu-item" data-action="download">⏬ Download</div>
     <div class="context-menu-item" data-action="rename">✏️ Rename</div>
     <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="properties">ℹ️ Properties</div>
+    <div class="context-menu-separator"></div>
     <div class="context-menu-item" data-action="delete">🗑️ Delete</div>
 </div>
-<input hidden type="text" id="current_folder_id">
+<input type="hidden" id="current_folder_id">
+
+<div class="file-properties-panel" id="propertiesPanel">
+    <div class="properties-header">
+        <span class="properties-close" id="closeProperties">&times;</span>
+        <h3>Properties</h3>
+    </div>
+    <div class="properties-content">
+        <div class="property-icon">
+            <span id="propertyFileIcon">📄</span>
+        </div>
+        <div class="property-item">
+            <span class="property-label">Name:</span>
+            <span id="propertyFileName" class="property-value"></span>
+        </div>
+        <div class="property-item">
+            <span class="property-label">Type:</span>
+            <span id="propertyFileType" class="property-value"></span>
+        </div>
+        <div class="property-item">
+            <span class="property-label">Size:</span>
+            <span id="propertyFileSize" class="property-value"></span>
+        </div>
+        <div class="property-item">
+            <span class="property-label">Upload date:</span>
+            <span id="propertyFileDate" class="property-value"></span>
+        </div>
+        <div class="property-item">
+            <span class="property-label">Owner:</span>
+            <span id="propertyFileOwner" class="property-value"></span>
+        </div>
+    </div>
+</div>
+
 <script>
     const fileCache = {};
+    let folderPath = [];
     let currentView = 'grid';
     let currentPath = '/home';
     let selectedFile = null;
@@ -82,7 +118,12 @@
         setView('grid');
         loadUserData();
         loadSectionContent('my-files');
+        updateBreadcrumb();
         setupContextMenu();
+
+        document.getElementById('closeProperties')?.addEventListener('click', () => {
+            document.getElementById('propertiesPanel').classList.remove('active');
+        });
     });
 
     function checkSavedTheme() {
@@ -117,6 +158,10 @@
             document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             loadSectionContent(sectionId);
+
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
         });
     });
 
@@ -158,6 +203,14 @@
                 <div class="file-icon">${file.isFolder ? '📁' : '📄'}</div>
                 <div class="file-name">${file.filename}</div>
             `;
+
+            item.addEventListener('click', async () => {
+                if (file.isFolder && file.serverName) {
+                    folderPath.push({ id: file.serverName, name: file.filename });
+                    await loadFolderById(file.serverName);
+                }
+            });
+
             container.appendChild(item);
         });
     }
@@ -167,7 +220,7 @@
         const pathLabel = document.getElementById('currentPath');
         if (!container || !pathLabel) return;
 
-        pathLabel.textContent = sectionId;
+        pathLabel.textContent = sectionId === 'my-files' ? '/home' : `/${sectionId}`;
         currentPath = sectionId;
 
         if (fileCache[sectionId]) {
@@ -293,29 +346,28 @@
         });
     }
 
-    function handleContextMenuAction(action) {
+    async function handleContextMenuAction(action) {
         if (!selectedFile) return;
 
         const fileName = selectedFile.querySelector('.file-name').textContent;
         const isFolder = selectedFile.getAttribute('data-type') === 'folder';
+        const fileId = selectedFile.getAttribute('data-uuid');
 
         switch(action) {
             case 'open':
                 if (isFolder) {
-                    // Логика открытия папки
-                    showNotification("Opening", `Opening folder: ${fileName}`);
+                    folderPath.push({ id: fileId, name: fileName });
+                    await loadFolderById(fileId);
                 } else {
-                    // Логика открытия файла
                     showNotification("Opening", `Opening file: ${fileName}`);
                 }
                 break;
 
             case 'download':
                 if (!isFolder) {
-                    const uuid = selectedFile.getAttribute('data-uuid');
-                    if (uuid) {
+                    if (fileId) {
                         showNotification("Download", `Downloading: ${fileName}`);
-                        window.location.href = `/api/storage/download/${uuid}`;
+                        window.location.href = `/api/storage/download/${fileId}`;
                     } else {
                         showNotification("Error", "No UUID found for file.");
                     }
@@ -329,12 +381,49 @@
                 }
                 break;
 
+            case 'properties':
+                openFileProperties(selectedFile);
+                break;
+
             case 'delete':
                 if (confirm(`Delete ${isFolder ? 'folder' : 'file'}: ${fileName}?`)) {
                     showNotification("Deleted", `${fileName} was deleted`);
                 }
                 break;
         }
+    }
+
+    function openFileProperties(item) {
+        const isFolder = item.getAttribute('data-type') === 'folder';
+        const fileName = item.querySelector('.file-name').textContent;
+        const fileId = item.getAttribute('data-uuid') || 'unknown';
+        const fileSize = isFolder ? '-' : '1.5 MB';
+
+        showFileProperties({
+            id: fileId,
+            name: fileName,
+            isFolder: isFolder,
+            size: fileSize,
+            date: new Date().toLocaleString(),
+            owner: 'Current User'
+        });
+    }
+
+    function showFileProperties(fileData) {
+        const panel = document.getElementById('propertiesPanel');
+        if (!panel) {
+            console.error('Properties panel not found');
+            return;
+        }
+
+        document.getElementById('propertyFileIcon').textContent = fileData.isFolder ? '📁' : '📄';
+        document.getElementById('propertyFileName').textContent = fileData.name;
+        document.getElementById('propertyFileType').textContent = fileData.isFolder ? 'Folder' : 'File';
+        document.getElementById('propertyFileSize').textContent = fileData.size;
+        document.getElementById('propertyFileDate').textContent = fileData.date;
+        document.getElementById('propertyFileOwner').textContent = fileData.owner;
+
+        panel.classList.add('active');
     }
 
     document.getElementById('createFolderBtn').addEventListener('click', createNewFolder);
@@ -348,8 +437,6 @@
         const folderName = prompt("Enter folder name:");
         if (!folderName) return;
 
-
-        alert(folderName)
         try {
             const response = await fetch('/api/storage/createFolder', {
                 method: 'POST',
@@ -365,9 +452,14 @@
 
             if (!response.ok) throw new Error('Failed to create folder');
 
-            const currentSection = document.querySelector('.menu-item.active').getAttribute('data-section');
-            delete fileCache[currentSection];
-            loadSectionContent(currentSection);
+            // Обновляем только текущую папку
+            if (currentPath !== 'my-files' && currentPath !== 'shared' && currentPath !== 'trash') {
+                delete fileCache[currentPath];
+                await loadFolderById(currentPath);
+            } else {
+                delete fileCache[currentPath];
+                loadSectionContent(currentPath);
+            }
 
             showNotification("Folder created", `Folder "${folderName}" was created`);
         } catch (error) {
@@ -377,59 +469,224 @@
     }
 
     async function handleFileUpload(e) {
-        const files = e.target.files;
-        if (!files.length) return;
+        const fileInput = e.target;
+        const files = fileInput.files;
+        const parentFolderId = document.getElementById("current_folder_id").value;
 
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-            formData.append('files', files[i]);
+        if (!files || files.length === 0) {
+            showNotification("Error", "No files selected", "Now");
+            return;
         }
-        formData.append('path', document.getElementById('currentPath').textContent);
 
-        try {
-            const response = await fetch('/api/storage/upload', {
+        for (const file of files) {
+            if (file.size === 0) {
+                showNotification("Error", `File "${file.name}" is empty`, "Now");
+                continue;
+            }
+
+            await uploadFileInChunks(file, parentFolderId);
+        }
+
+        fileInput.value = '';
+    }
+    async function uploadFileInChunks(file, parentFolderId) {
+        const chunkSize = 2 * 1024 * 1024; // 2 MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const fileId = crypto.randomUUID();
+
+        const notification = showNotification("Uploading", file.name, "Now");
+
+        let startTime = performance.now();
+        let uploadedBytes = 0;
+
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = file.slice(i * chunkSize, (i + 1) * chunkSize);
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+            formData.append('fileName', file.name);
+            formData.append('fileId', fileId);
+            formData.append('chunkIndex', i);
+            formData.append('totalChunks', totalChunks);
+            formData.append('parentFolderId', parentFolderId);
+
+            const chunkStart = performance.now();
+            const res = await fetch('/api/storage/upload/chunk', {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
             });
+            const chunkEnd = performance.now();
 
-            if (!response.ok) throw new Error('Upload failed');
+            const result = await res.json();
 
-            const currentSection = document.querySelector('.menu-item.active').getAttribute('data-section');
-            delete fileCache[currentSection];
-            loadSectionContent(currentSection);
+            uploadedBytes += chunk.size;
+            const elapsedSec = (chunkEnd - startTime) / 1000;
+            const speed = uploadedBytes / elapsedSec; // bytes/sec
 
-            showNotification("Upload complete", `${files.length} file(s) uploaded`);
-        } catch (error) {
-            console.error('Upload error:', error);
-            showNotification("Upload failed", error.message, "Now");
-        } finally {
-            e.target.value = '';
+            if (result.status === 'partial') {
+                const percent = Math.round((uploadedBytes / file.size) * 100);
+                notification.updateMessage(
+                    `${file.name}\n${percent}% — ${formatBytes(uploadedBytes)} / ${formatBytes(file.size)} @ ${formatBytes(speed)}/s`
+                );
+                notification.updateProgress(percent);
+            } else if (result.status === 'completed') {
+                notification.updateTitle("Upload complete");
+                notification.updateMessage(`✅ ${file.name} загружен (${formatBytes(file.size)})`);
+                notification.updateProgress(100);
+                await loadUserData();
+                delete fileCache[currentPath];
+                if (currentPath !== 'my-files' && currentPath !== 'shared' && currentPath !== 'trash') {
+                    await loadFolderById(currentPath);
+                } else {
+                    loadSectionContent(currentPath);
+                }
+            } else if (result.status === 'error') {
+                notification.updateTitle("Ошибка");
+                notification.updateMessage(result.message);
+                notification.updateProgress(0);
+                break;
+            }
         }
+
+        // закрытие вручную (через 3 секунды после загрузки)
+        notification.autoClose(3000);
     }
 
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+    }
+
+
+
+    // Назначаем обработчик на input для загрузки файлов
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+    // Добавьте этот код в функцию showNotification
     function showNotification(title, message, time = "Now") {
         const notification = document.createElement('div');
         notification.className = 'notification fade-notification';
         notification.innerHTML = `
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
-            <div class="notification-time">${time}</div>
-            <button class="notification-close">&times;</button>
-        `;
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+        <div class="notification-time">${time}</div>
+        <div class="notification-progress"></div>
+        <button class="notification-close">&times;</button>
+    `;
 
         document.getElementById('notificationContainer').appendChild(notification);
+
+        notification.updateProgress = (percent) => {
+            const progressBar = notification.querySelector('.notification-progress');
+            progressBar.style.width = `${percent}%`;
+            progressBar.style.backgroundColor = percent === 100 ? '#4CAF50' : '#2196F3';
+        };
+
+        notification.updateMessage = (newMessage) => {
+            notification.querySelector('.notification-message').textContent = newMessage;
+        };
+
+        notification.updateTitle = (newTitle) => {
+            notification.querySelector('.notification-title').textContent = newTitle;
+        };
+
+        notification.autoClose = (ms = 5000) => {
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => notification.remove(), 300);
+            }, ms);
+        };
 
         notification.querySelector('.notification-close').addEventListener('click', () => {
             notification.remove();
         });
 
-        setTimeout(() => {
-            notification.classList.add('hide');
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
-
         return notification;
+    }
+
+
+    function updateBreadcrumb() {
+        const pathBar = document.getElementById('currentPath');
+        pathBar.innerHTML = '';
+
+        const root = document.createElement('span');
+        root.textContent = 'home';
+        root.classList.add('breadcrumb');
+        root.style.cursor = 'pointer';
+        root.style.fontWeight = folderPath.length === 0 ? 'bold' : 'normal';
+        root.addEventListener('click', () => {
+            folderPath = [];
+            loadSectionContent('my-files');
+        });
+        pathBar.appendChild(root);
+
+        folderPath.forEach((item, index) => {
+            const separator = document.createTextNode(' / ');
+            pathBar.appendChild(separator);
+
+            const crumb = document.createElement('span');
+            crumb.textContent = item.name;
+            crumb.classList.add('breadcrumb');
+            crumb.style.cursor = 'pointer';
+            crumb.style.fontWeight = index === folderPath.length - 1 ? 'bold' : 'normal';
+            crumb.addEventListener('click', () => {
+                folderPath = folderPath.slice(0, index + 1);
+                loadFolderById(item.id);
+            });
+            pathBar.appendChild(crumb);
+        });
+    }
+
+    async function loadFolderById(folderUuid) {
+        try {
+            const res = await fetch(`/api/storage/folder/${folderUuid}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (!res.ok) throw new Error('Failed to load folder');
+
+            const folderDto = await res.json();
+
+            fileCache[folderUuid] = folderDto.fileDtos;
+            renderFiles(folderDto.fileDtos);
+
+            document.getElementById("current_folder_id").value = folderDto.id;
+            currentPath = folderUuid;
+
+            updateBreadcrumb();
+        } catch (err) {
+            console.error(err);
+            showNotification("Error", "Could not load folder");
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.zIndex = '80';
+        overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        overlay.onclick = toggleSidebar;
+
+        const existingOverlay = document.querySelector('.sidebar-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        if (sidebar.classList.contains('active')) {
+            document.body.appendChild(overlay);
+        }
     }
 </script>
 </body>

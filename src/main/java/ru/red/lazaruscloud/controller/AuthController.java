@@ -10,7 +10,6 @@ import ru.red.lazaruscloud.dto.authDtos.JwtResponseDto;
 import ru.red.lazaruscloud.dto.authDtos.LoginRequestDto;
 import ru.red.lazaruscloud.dto.authDtos.RegisterRequestDto;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
-import ru.red.lazaruscloud.model.CloudStorage;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.security.Role;

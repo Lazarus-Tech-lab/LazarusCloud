@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
+import ru.red.lazaruscloud.dto.cloudDtos.FolderDto;
 import ru.red.lazaruscloud.dto.cloudDtos.UserDataDto;
 import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
@@ -12,6 +13,7 @@ import ru.red.lazaruscloud.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -38,5 +40,9 @@ public class UserStorageService {
 
     public List<CloudFileDto> getSharedFiles(Long ownerId) {
         return cloudFileService.getSharedFilesByOwnerId(ownerId);
+    }
+
+    public FolderDto getFolderFiles(Long ownerId, UUID folderId) {
+        return cloudFileService.getFolderWithFiles(ownerId, folderId);
     }
 }

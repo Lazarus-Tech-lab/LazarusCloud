@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.red.lazaruscloud.model.CloudFile;
-import ru.red.lazaruscloud.model.LazarusUserDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +23,11 @@ public interface CloudFileRepository extends JpaRepository<CloudFile, Long> {
 
     @Query("select cf from CloudFile cf WHERE cf.fileOwner.id = :userId AND cf.isShared = true")
     Optional<List<CloudFile>> findSharedFiles(@Param("userId") Long userId);
+
+    @Query("select cf from CloudFile cf where cf.fileOwner.id = :ownerId AND cf.parentId = " +
+            "(select cf2.id from CloudFile cf2 where cf2.serverName = :folderName)")
+    Optional<List<CloudFile>> findFolderFiles(Long ownerId, String folderName);
+
+    Optional<CloudFile> findCloudFilesByServerName(String serverName);
+
 }
