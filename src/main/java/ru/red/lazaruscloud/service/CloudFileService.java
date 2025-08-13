@@ -1,24 +1,24 @@
 package ru.red.lazaruscloud.service;
 
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFileDto;
 import ru.red.lazaruscloud.dto.cloudDtos.CloudFolderDto;
 import ru.red.lazaruscloud.dto.cloudDtos.FolderDto;
-import ru.red.lazaruscloud.dto.cloudDtos.QuotaDto;
 import ru.red.lazaruscloud.mapper.CloudFileMapper;
 import ru.red.lazaruscloud.model.CloudFile;
 import ru.red.lazaruscloud.model.LazarusUserDetail;
 import ru.red.lazaruscloud.model.StorageLimit;
 import ru.red.lazaruscloud.model.User;
 import ru.red.lazaruscloud.repository.CloudFileRepository;
+import ru.red.lazaruscloud.util.thumbnails.ThumbnailsHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,16 +37,14 @@ public class CloudFileService {
 
     public List<CloudFileDto> getAllFilesByUser(LazarusUserDetail userDetails) {
 
-        List<CloudFileDto> files = new ArrayList<>();
+        List<CloudFileDto> resultFiles = new ArrayList<>();
+        List<CloudFile> files = cloudFileRepository.findUserFilesWithRootParent(userDetails.getId());
 
+        files.forEach(file -> {
+            resultFiles.add(CloudFileMapper.toDto(file));
+        });
 
-        List<CloudFile> filess = cloudFileRepository.findUserFilesWithRootParent(userDetails.getId());
-             for (CloudFile cloudFile : filess) {
-
-                     files.add(CloudFileMapper.toDto(cloudFile));
-
-             }
-        return files;
+        return resultFiles;
     }
 
     public Long getRootFolderId(Long userId) {
@@ -61,8 +59,6 @@ public class CloudFileService {
             String serverFileName = UUID.randomUUID().toString();
             String serverFileNameExt = UUID.randomUUID() + Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
             Path filePath = uploadDir.resolve(Objects.requireNonNull(serverFileNameExt));
-
-
             CloudFile cloudFile = new CloudFile();
             cloudFile.setName(file.getOriginalFilename());
             cloudFile.setPath(filePath.toString());
@@ -74,12 +70,15 @@ public class CloudFileService {
             u.setId(userDetails.getId());
             StorageLimit quota = cloudQuotaService.getQuota(u);
             cloudFile.setFileOwner(u);
-            long newUserQuota = quota.getQuotaUsedLimit()+file.getSize();
+            long newUserQuota = quota.getQuotaUsedLimit() + file.getSize();
             quota.setQuotaUsedLimit(newUserQuota);
             if (quota.getQuotaLimit() >= newUserQuota) {
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
                 CloudFile uploadedFile = cloudFileRepository.save(cloudFile);
                 cloudQuotaService.setUsedQuota(quota);
+
+                BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+                System.out.println(attr);
                 return CloudFileMapper.toDto(uploadedFile);
             } else {
                 return null;
@@ -124,6 +123,7 @@ public class CloudFileService {
             cloudFile.setShared(false);
             cloudFile.setIsDeleted(false);
             cloudFile.setParentId(0L);
+            cloudFile.setThumbnail("");
             cloudFileRepository.save(cloudFile);
             return true;
         } catch (IOException e) {
@@ -153,6 +153,7 @@ public class CloudFileService {
         cloudFile.setShared(false);
         cloudFile.setIsDeleted(false);
         cloudFile.setParentId(cloudFolderDto.parentId());
+        cloudFile.setThumbnail("uploads/pictures/folder.png");
 
         return cloudFileRepository.save(cloudFile);
     }
@@ -199,6 +200,7 @@ public class CloudFileService {
     }
 
     public CloudFileDto saveChunkedFile(LazarusUserDetail userDetails, Path assembledFile, String originalName, Long parentId) {
+
         try {
             Path uploadDir = Paths.get(UPLOAD_PATH, userDetails.getRootFolder());
             Files.createDirectories(uploadDir);
@@ -213,6 +215,7 @@ public class CloudFileService {
             String serverFileNameExt = UUID.randomUUID() + ext;
             Path filePath = uploadDir.resolve(serverFileNameExt);
             Files.move(assembledFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+            String pathToThumbnail = ThumbnailsHelper.getThumbnailFromFile(filePath, userDetails.getRootFolder(), serverFileName);
 
             CloudFile cloudFile = new CloudFile();
             cloudFile.setName(originalName);
@@ -222,6 +225,8 @@ public class CloudFileService {
             cloudFile.setParentId(parentId);
             cloudFile.setIsFolder(false);
             cloudFile.setIsDeleted(false);
+            cloudFile.setThumbnail(pathToThumbnail);
+
             User u = new User();
             u.setId(userDetails.getId());
 
@@ -243,6 +248,7 @@ public class CloudFileService {
             return null;
         }
     }
+
 
     public CloudFileDto softDelete(long ownerId, String uuid) {
         Optional<CloudFile> cfgto = cloudFileRepository.findCloudFileByFileOwner_IdAndServerName(ownerId, uuid);
@@ -267,7 +273,7 @@ public class CloudFileService {
     }
 
     public CloudFile getFileByServerName(String uuid) {
-       Optional<CloudFile> cf = cloudFileRepository.findCloudFilesByServerName(uuid);
+        Optional<CloudFile> cf = cloudFileRepository.findCloudFilesByServerName(uuid);
         return cf.orElse(null);
     }
 }

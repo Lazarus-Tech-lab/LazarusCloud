@@ -2,12 +2,11 @@ package ru.red.lazaruscloud.controller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.name.Rename;
 import org.apache.tomcat.util.file.ConfigurationSource;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.*;
@@ -23,16 +22,19 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import ru.red.lazaruscloud.service.UserStorageService;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @RestController
@@ -92,10 +94,12 @@ public class CloudStorageController {
                     }
                 }
 
+
                 CloudFileDto saved = cloudFileService.saveChunkedFile(user, finalFile, fileName, parentFolderId);
                 FileSystemUtils.deleteRecursively(userDir);
 
                 if (saved != null) {
+
                     return ResponseEntity.ok(Map.of(
                             "status", "completed",
                             "file", saved
@@ -192,6 +196,23 @@ public class CloudStorageController {
                 .contentType(type)
                 .body(resource);
     }
+
+    @GetMapping("/raw/thumb/{uuid}")
+    public ResponseEntity<Resource> getThumb(@PathVariable String uuid) throws IOException {
+        CloudFile file = cloudFileService.getFileByServerName(uuid);
+
+        Path filePath = Paths.get(file.getThumbnail());
+
+        MediaType type = Files.probeContentType(filePath) != null ?
+                MediaType.parseMediaType(Files.probeContentType(filePath)) :
+                MediaType.APPLICATION_OCTET_STREAM;
+
+        Resource resource = new FileSystemResource(filePath);
+        return ResponseEntity.ok()
+                .contentType(type)
+                .body(resource);
+    }
+
 
 
     @GetMapping("/getShared")

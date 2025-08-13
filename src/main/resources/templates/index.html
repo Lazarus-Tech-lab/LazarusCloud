@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lazarus Cloud</title>
     <link th:href="@{/style/main.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=download" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=edit" />
 </head>
 <body>
 <div class="noise"></div>
 <div class="burger" id="burger" onclick="toggleSidebar()">☰</div>
-<div class="view-switcher" id="viewSwitcher">
-    <button class="view-btn active" data-view="grid">☷ Grid</button>
-    <button class="view-btn" data-view="list">☰ List</button>
-    <button class="view-btn" id="themeSwitcher" style="min-width: 40px;">🌙</button>
-</div>
+<!--<div class="view-switcher" id="viewSwitcher">-->
+
+<!--</div>-->
 <div class="container">
     <div class="sidebar" id="sidebar">
         <div class="logo">LazarusCloud<span class="cursor"></span></div>
@@ -32,42 +33,61 @@
         <div class="menu-item" data-section="settings">⚙️ Settings</div>
 
     </div>
-    <div class="main">
-        <div class="path-bar" id="pathBar">
-            <span>CLOUD:</span>
-            <span id="currentPath">/home</span>
-        </div>
-        <div id="audioPlayerContainer" class="audio-player hidden">
-            <audio id="audioPlayer" controls></audio>
-            <div class="audio-title" id="audioTitle">Nothing playing</div>
-        </div>
-        <div class="files-action-bar">
-            <div class="action-buttons">
-                <button class="action-btn" id="createFolderBtn">
-                    <span class="action-icon">📁</span>
-                    <span class="action-text">New Folder</span>
-                </button>
-                <button class="action-btn" id="uploadFileBtn">
-                    <span class="action-icon">📤</span>
-                    <span class="action-text">Upload</span>
-                </button>
-                <input type="text" id="fileSearchInput" placeholder="Search..." class="text-input" style="margin-left: auto;">
+    <div class="main-blocks">
+        <div class="header">
+            <div class="path-bar" id="pathBar">
+                <span>CLOUD:</span>
+                <span id="currentPath">/home</span>
             </div>
-            <input type="file" id="fileInput" style="display: none;" multiple>
+            <div id="audioPlayerContainer" class="audio-player hidden">
+                <audio id="audioPlayer" controls></audio>
+                <div class="audio-title" id="audioTitle">Nothing playing</div>
+            </div>
+            <div class="files-action-bar">
+                <div class="action-buttons">
+                    <button class="action-btn" id="createFolderBtn">
+                        <span class="action-icon">📁</span>
+                        <span class="action-text">New Folder</span>
+                    </button>
+                    <button class="action-btn" id="uploadFileBtn">
+                        <span class="action-icon">📤</span>
+                        <span class="action-text">Upload</span>
+                    </button>
+                    <input type="text" id="fileSearchInput" placeholder="Search..." class="text-input" style="margin-left: auto;">
+
+                </div>
+                <input type="file" id="fileInput" style="display: none;" multiple>
+            </div>
+            <div class="files-action-bar">
+                <div class="action-buttons">
+
+                    <button class="view-btn active" data-view="grid">☷ Grid</button>
+                    <button class="view-btn" data-view="list">☰ List</button>
+                    <button class="view-btn" id="themeSwitcher" style="min-width: 40px;">🌙</button>
+                </div>
+            </div>
         </div>
-        <div id="filesContainer" class="files-grid"></div>
-        <div id="settingsContent" class="settings-section" style="display:none;">
-            <div class="setting-item">
-                <div class="setting-title">Dark Mode</div>
-                <div class="setting-controls">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="darkModeToggle" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+        <div class="main">
+
+
+            <div id="filesContainer" class="files-grid">
+                <div>GBC</div>
+
+            </div>
+            <div id="settingsContent" class="settings-section" style="display:none;">
+                <div class="setting-item">
+                    <div class="setting-title">Dark Mode</div>
+                    <div class="setting-controls">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkModeToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 <div class="notification-container" id="notificationContainer"></div>
 <div class="context-menu" id="contextMenu">
@@ -200,9 +220,21 @@
             item.setAttribute('data-type', file.isFolder ? 'folder' : 'file');
             item.setAttribute('data-uuid', file.serverName);
             item.innerHTML = `
-                <div class="file-icon">${file.isFolder ? '📁' : '📄'}</div>
-                <div class="file-name">${file.filename}</div>
+                <div class="file-icon"><img class="thumbnail-icon" src="/api/storage/raw/thumb/${item.getAttribute('data-uuid')}"></div>
+                <div class="file-container">
+                    <div class="file-name">${file.filename}</div>
+                    <div class="file-info">${formatBytes(file.size)}</div>
+
+                    <div class="file-action-btns">
+                       <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                    </div>
+                </div>
+
+
             `;
+
 
             item.addEventListener('click', async () => {
                 if (file.isFolder && file.serverName) {

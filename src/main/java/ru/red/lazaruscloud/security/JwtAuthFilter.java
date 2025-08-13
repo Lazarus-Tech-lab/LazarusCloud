@@ -34,12 +34,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = getTokenFromRequest(request);
 
-        if(request.getRequestURI().equals("/auth")) {
+        if (request.getRequestURI().startsWith("/style/") ||
+                request.getRequestURI().startsWith("/script/") ||
+                request.getRequestURI().equals("/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (token == null) {
+        if (token == null && request.getRequestURI().startsWith("/api/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -99,9 +101,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private void sendError(HttpServletResponse response, String message, HttpStatus status) throws IOException {
+        if (response.isCommitted()) {
+            return;
+        }
         Cookie cookie = new Cookie("access_token", null);
         cookie.setPath("/");
-        cookie.setMaxAge(0); // Удалить
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
 
         response.setContentType("application/json");

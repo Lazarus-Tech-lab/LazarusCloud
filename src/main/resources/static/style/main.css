@@ -64,7 +64,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    overflow: hidden;
+    /*overflow: hidden;*/
     transition: all 0.3s ease;
 }
 
@@ -74,7 +74,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABGSURBVGhD7cExAQAwDMCg+zfd2VAE5pdHrZK1Zq2ZtWbWmllrZq2ZtWbWmllrZq2ZtWbWmllrZq2ZtWbWmllrZq0Z4A8JZQH0UHj3ZAAAAABJRU5ErkJggg==');
+    /*background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABGSURBVGhD7cExAQAwDMCg+zfd2VAE5pdHrZK1Zq2ZtWbWmllrZq2ZtWbWmllrZq2ZtWbWmllrZq2ZtWbWmllrZq0Z4A8JZQH0UHj3ZAAAAABJRU5ErkJggg==');*/
     opacity: 0.03;
     pointer-events: none;
     z-index: -1;
@@ -83,7 +83,7 @@ body {
 /* Стили главного интерфейса */
 .container {
     display: flex;
-    height: calc(100vh - 30px);
+    height: 100vh;
 }
 
 .sidebar {
@@ -169,7 +169,7 @@ body {
 .main {
     flex: 1;
     padding: 20px;
-    overflow-y: auto;
+    overflow-y: auto; /* Прокрутка только внутри main */
 }
 
 .view-switcher {
@@ -210,7 +210,7 @@ body {
 
 .files-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 15px;
 }
 
@@ -223,10 +223,10 @@ body {
 .file-item {
     background-color: var(--file-bg);
     border: 1px solid var(--file-border);
-    padding: 10px;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
+    display: flex;
 }
 
 .file-item:hover {
@@ -240,32 +240,45 @@ body {
 
 .files-grid .file-icon {
     font-size: 30px;
-    margin-bottom: 10px;
     color: var(--accent-color);
+}
+.file-icon{
+    width: 100px;
+    height: 100px;
 }
 
 .files-grid .file-name {
     font-size: 12px;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 10px;
+    padding-top: 10px;
+    max-width: 120px;
+}
+.file-action-btns{
+    text-align: start;
+    padding-left: 10px;
+    padding-top: 10px;
 }
 
 .files-list .file-item {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 10px 15px;
 }
 
 .files-list .file-icon {
     font-size: 20px;
     color: var(--accent-color);
-    min-width: 25px;
+    /*min-width: 25px;*/
     text-align: center;
 }
 
 .files-list .file-name {
     font-size: 14px;
     flex-grow: 1;
+    padding-top: 10px;
 }
 
 .files-list .file-size {
@@ -537,6 +550,9 @@ input:checked + .toggle-slider:before {
     transform: translateY(0);
 }
 
+.header {
+    padding: 20px 20px;
+}
 .modal-header {
     padding: 15px 20px;
     border-bottom: 1px solid var(--file-border);
@@ -712,7 +728,12 @@ input:checked + .toggle-slider:before {
 .auth-input-group {
     margin-bottom: 15px;
 }
-
+.main-blocks {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Чтобы внутренний контент не "выталкивал" структуру */
+}
 .auth-label {
     display: block;
     margin-bottom: 6px;
@@ -804,7 +825,7 @@ input:checked + .toggle-slider:before {
         position: fixed;
         top: 0;
         left: 0;
-        bottom: 30px;
+        height: 100%;
         transform: translateX(-100%);
         z-index: 90;
     }
@@ -815,16 +836,16 @@ input:checked + .toggle-slider:before {
 
     .burger {
         display: block;
+        z-index: 10;
     }
 
     .main {
-        margin-left: 0;
-        padding-top: 80px;
         padding-bottom: 40px;
     }
 
     .files-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        height: 100vh;
     }
 
     .view-switcher {
@@ -943,6 +964,7 @@ input:checked + .toggle-slider:before {
     color: white;
     border: none;
     padding: 6px 12px;
+    padding-right: 20px;
     cursor: pointer;
     font-size: 13px;
     display: flex;
@@ -1063,14 +1085,18 @@ input:checked + .toggle-slider:before {
     transition: width 0.3s ease, background-color 0.3s ease;
 }
 .thumbnail-icon {
-    width: 100%;
-    height: 70px;
+    height: 100px;
+    width:  100px;
     object-fit: cover;
-    border-radius: 4px;
 }
 .files-list .thumbnail-icon {
-    width: 60px;
-    height: 60px;
+    /*width: 60px;*/
+    /*height: 60px;*/
+}
+.file-info{
+    font-size: 12px;
+    padding: 10px;
+    text-align: start;
 }
 .audio-player {
     margin-top: 15px;

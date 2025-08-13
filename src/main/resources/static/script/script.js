@@ -143,8 +143,10 @@ const Validator = {
 
 // Auth service module
 const AuthService = {
+
     async login(username, password) {
         try {
+            deleteAllCookies();
             const response = await fetch('/api/auth', {
                 method: 'POST',
                 headers: {
@@ -489,5 +491,14 @@ document.getElementById('fileSearchInput').addEventListener('input', (e) => {
     renderFiles(filtered);
 });
 
+function deleteAllCookies() {
+    var cookies = document.cookie.split(";");
 
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf("=");
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
 

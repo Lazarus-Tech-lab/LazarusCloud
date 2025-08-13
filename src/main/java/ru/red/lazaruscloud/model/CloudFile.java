@@ -42,6 +42,9 @@ public class CloudFile {
     @Column(name = "server_path", nullable = false)
     private String path;
 
+    @Column(name = "thumbnail", nullable = true)
+    private String thumbnail;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 }
