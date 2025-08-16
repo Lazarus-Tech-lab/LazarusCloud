@@ -8,72 +8,145 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=download" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=edit" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&animation=hover" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
 </head>
 <body>
 <div class="noise"></div>
-<div class="burger" id="burger" onclick="toggleSidebar()">☰</div>
-<!--<div class="view-switcher" id="viewSwitcher">-->
-
-<!--</div>-->
+<input type="file" id="fileInput" style="display: none;" multiple
+       accept="*/*"
+       capture="environment">
+<!-- Main App Container -->
 <div class="container">
-    <div class="sidebar" id="sidebar">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+
         <div class="logo">LazarusCloud<span class="cursor"></span></div>
+
         <div class="user-info">
             <div id="userName" class="skeleton" style="height: 18px; width: 100px;">Loading...</div>
             <div id="quotaInfo" class="skeleton" style="height: 14px; width: 130px; font-size: 11px;">Loading...</div>
         </div>
 
-        <div class="menu-item active" data-section="my-files">📁 My Files</div>
-        <div class="menu-item" data-section="shared">🔗 Shared</div>
-        <div class="menu-item" data-section="trash">🗑️ Trash</div>
-        <div class="menu-item" data-section="notifications">
-            🔔 Notifications
+        <div class="actions-section">
+            <button class="sidebar-action" id="uploadFileBtn">
+                <span class="material-symbols-outlined">upload</span>
+                <span class="action-text">Upload</span>
+            </button>
+            <button class="sidebar-action" id="createFolderBtn">
+                <span class="material-symbols-outlined">create_new_folder</span>
+                <span class="action-text">New Folder</span>
+            </button>
+        </div>
+
+        <div class="menu-item active" data-section="my-files" role="button" tabindex="0">
+            <span aria-hidden="true">📁</span> My Files
+        </div>
+        <div class="menu-item" data-section="shared" role="button" tabindex="0">
+            <span aria-hidden="true">🔗</span> Shared
+        </div>
+        <div class="menu-item" data-section="trash" role="button" tabindex="0">
+            <span aria-hidden="true">🗑️</span> Trash
+        </div>
+        <div class="menu-item" data-section="notifications" role="button" tabindex="0">
+            <span aria-hidden="true">🔔</span> Notifications
             <span class="menu-badge" id="menuBadge">3</span>
         </div>
-        <div class="menu-item" data-section="settings">⚙️ Settings</div>
+        <div class="menu-item" data-section="settings" role="button" tabindex="0">
+            <span aria-hidden="true">⚙️</span> Settings
+        </div>
+    </nav>
 
-    </div>
-    <div class="main-blocks">
-        <div class="header">
-            <div class="path-bar" id="pathBar">
-                <span>CLOUD:</span>
-                <span id="currentPath">/home</span>
-            </div>
-            <div id="audioPlayerContainer" class="audio-player hidden">
-                <audio id="audioPlayer" controls></audio>
-                <div class="audio-title" id="audioTitle">Nothing playing</div>
-            </div>
+    <!-- Main Content Area -->
+    <main class="main-blocks">
+        <header class="header">
+
+
             <div class="files-action-bar">
                 <div class="action-buttons">
-                    <button class="action-btn" id="createFolderBtn">
-                        <span class="action-icon">📁</span>
-                        <span class="action-text">New Folder</span>
-                    </button>
-                    <button class="action-btn" id="uploadFileBtn">
-                        <span class="action-icon">📤</span>
-                        <span class="action-text">Upload</span>
-                    </button>
+                    <div class="burger" id="burger" onclick="toggleSidebar()">☰</div>
                     <input type="text" id="fileSearchInput" placeholder="Search..." class="text-input" style="margin-left: auto;">
-
-                </div>
-                <input type="file" id="fileInput" style="display: none;" multiple>
-            </div>
-            <div class="files-action-bar">
-                <div class="action-buttons">
-
                     <button class="view-btn active" data-view="grid">☷ Grid</button>
                     <button class="view-btn" data-view="list">☰ List</button>
                     <button class="view-btn" id="themeSwitcher" style="min-width: 40px;">🌙</button>
                 </div>
             </div>
-        </div>
-        <div class="main">
 
+            <div id="audioPlayer" class="custom-audio-player hidden">
+                <div class="player-header">
+                    <div class="player-info">
+                        <div class="player-thumb">
+                            <img id="audioPic" class="player-img" src="/placeholder.jpg" alt="Обложка">
+                        </div>
+                        <div class="player-details">
+                            <div id="audioTitle" class="player-title">Название трека</div>
+                            <div id="audioArtist" class="player-artist">Исполнитель</div>
+                        </div>
+                    </div>
 
-            <div id="filesContainer" class="files-grid">
-                <div>GBC</div>
+                    <div class="player-time">
+                        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                    </div>
 
+                    <button class="player-close" id="closePlayer">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div class="player-controls-row">
+                    <div class="player-main-controls">
+                        <button class="control-btn" id="prevBtn">
+                            <span class="material-symbols-outlined">skip_previous</span>
+                        </button>
+                        <button class="control-btn main-btn" id="playPauseBtn">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </button>
+                        <button class="control-btn" id="nextBtn">
+                            <span class="material-symbols-outlined">skip_next</span>
+                        </button>
+                    </div>
+
+                    <div class="progress-container">
+                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0">
+                    </div>
+
+                    <div class="player-extra-controls">
+                        <div class="volume-container">
+                            <button class="volume-btn" id="volumeBtn">
+                                <span class="material-symbols-outlined">volume_up</span>
+                            </button>
+                            <input type="range" id="volumeBar" class="volume-bar" value="100" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
             </div>
+        </header>
+
+        <!-- Recommendations Section -->
+        <section class="recommendation-container" aria-label="Quick access">
+            <div class="recommendation rec-photo" role="button" tabindex="0">
+                <div class="recommendation-text">Photos</div>
+            </div>
+            <div class="recommendation rec-music" role="button" tabindex="0">
+                <div class="recommendation-text">Music</div>
+            </div>
+            <div class="recommendation rec-files" role="button" tabindex="0">
+                <div class="recommendation-text">Files</div>
+            </div>
+        </section>
+
+        <!-- Files Content Section -->
+        <section class="main">
+            <div class="path-bar" id="pathBar">
+                <span>CLOUD:</span>
+                <span id="currentPath">/home</span>
+            </div>
+
+            <div id="filesContainer" class="files-grid" role="grid" aria-label="Files and folders">
+                <!-- Files will be rendered here -->
+                <div>GBC</div>
+            </div>
+
             <div id="settingsContent" class="settings-section" style="display:none;">
                 <div class="setting-item">
                     <div class="setting-title">Dark Mode</div>
@@ -85,30 +158,35 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
+</div>
 
-</div>
-<div class="notification-container" id="notificationContainer"></div>
-<div class="context-menu" id="contextMenu">
-    <div class="context-menu-item" data-action="open">📂 Open</div>
-    <div class="context-menu-item" data-action="download">⏬ Download</div>
-    <div class="context-menu-item" data-action="rename">✏️ Rename</div>
+<!-- Notification System -->
+<div class="notification-container" id="notificationContainer" role="status" aria-live="polite"></div>
+
+<!-- Context Menu -->
+<nav class="context-menu" id="contextMenu" role="menu" aria-hidden="true">
+    <div class="context-menu-item" data-action="open" role="menuitem">📂 Open</div>
+    <div class="context-menu-item" data-action="download" role="menuitem">⏬ Download</div>
+    <div class="context-menu-item" data-action="rename" role="menuitem">✏️ Rename</div>
     <div class="context-menu-separator"></div>
-    <div class="context-menu-item" data-action="properties">ℹ️ Properties</div>
+    <div class="context-menu-item" data-action="properties" role="menuitem">ℹ️ Properties</div>
     <div class="context-menu-separator"></div>
-    <div class="context-menu-item" data-action="delete">🗑️ Delete</div>
-</div>
+    <div class="context-menu-item" data-action="delete" role="menuitem">🗑️ Delete</div>
+</nav>
+
 <input type="hidden" id="current_folder_id">
 
-<div class="file-properties-panel" id="propertiesPanel">
+<!-- File Properties Panel -->
+<aside class="file-properties-panel" id="propertiesPanel" aria-hidden="true">
     <div class="properties-header">
-        <span class="properties-close" id="closeProperties">&times;</span>
+        <button class="properties-close" id="closeProperties" aria-label="Close properties">&times;</button>
         <h3>Properties</h3>
     </div>
     <div class="properties-content">
         <div class="property-icon">
-            <span id="propertyFileIcon">📄</span>
+            <span id="propertyFileIcon" aria-hidden="true">📄</span>
         </div>
         <div class="property-item">
             <span class="property-label">Name:</span>
@@ -131,9 +209,20 @@
             <span id="propertyFileOwner" class="property-value"></span>
         </div>
     </div>
-</div>
+</aside>
+
+<!-- Preview Modal -->
+<dialog class="resizable-preview" id="previewModal" aria-modal="true">
+    <div class="preview-header">
+        <h2 id="previewTitle">Preview</h2>
+        <button class="preview-close" onclick="closePreviewModal()" aria-label="Close preview">×</button>
+    </div>
+    <div class="preview-body" id="previewContent"></div>
+    <div class="preview-resizer" id="previewResizer"></div>
+</dialog>
 
 <script>
+    // Оригинальный JavaScript код остается без изменений
     const fileCache = {};
     let folderPath = [];
     let currentView = 'grid';
@@ -219,22 +308,22 @@
             item.className = 'file-item';
             item.setAttribute('data-type', file.isFolder ? 'folder' : 'file');
             item.setAttribute('data-uuid', file.serverName);
+            item.setAttribute('role', 'gridcell');
+            item.setAttribute('aria-label', `${file.isFolder ? 'Folder' : 'File'}: ${file.filename}`);
             item.innerHTML = `
-                <div class="file-icon"><img class="thumbnail-icon" src="/api/storage/raw/thumb/${item.getAttribute('data-uuid')}"></div>
-                <div class="file-container">
-                    <div class="file-name">${file.filename}</div>
-                    <div class="file-info">${formatBytes(file.size)}</div>
+                    <div class="file-icon"><img class="thumbnail-icon" id="${item.getAttribute('data-uuid')}" src="/api/storage/raw/thumb/${item.getAttribute('data-uuid')}" alt="${file.filename} thumbnail"></div>
+                    <div class="file-container">
+                        <div class="file-name">${file.filename}</div>
+                        <div class="file-info">${formatBytes(file.size)}</div>
 
-                    <div class="file-action-btns">
-                       <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                        <div class="file-action-btns">
+                           <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" aria-hidden="true"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" aria-hidden="true"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" aria-hidden="true"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" aria-hidden="true"><path d="M680-80q-50 0-85-35t-35-85q0-6 3-28L282-392q-16 15-37 23.5t-45 8.5q-50 0-85-35t-35-85q0-50 35-85t85-35q24 0 45 8.5t37 23.5l281-164q-2-7-2.5-13.5T560-760q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-24 0-45-8.5T598-672L317-508q2 7 2.5 13.5t.5 14.5q0 8-.5 14.5T317-452l281 164q16-15 37-23.5t45-8.5q50 0 85 35t35 85q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T720-200q0-17-11.5-28.5T680-240q-17 0-28.5 11.5T640-200q0 17 11.5 28.5T680-160ZM200-440q17 0 28.5-11.5T240-480q0-17-11.5-28.5T200-520q-17 0-28.5 11.5T160-480q0 17 11.5 28.5T200-440Zm480-280q17 0 28.5-11.5T720-760q0-17-11.5-28.5T680-800q-17 0-28.5 11.5T640-760q0 17 11.5 28.5T680-720Zm0 520ZM200-480Zm480-280Z"/></svg>
+                        </div>
                     </div>
-                </div>
-
-
-            `;
-
+                `;
 
             item.addEventListener('click', async () => {
                 if (file.isFolder && file.serverName) {
@@ -372,7 +461,7 @@
         menu.style.left = `${posX}px`;
         menu.style.top = `${posY}px`;
         menu.style.display = 'block';
-    }
+    }audioTitle
 
     function resetFileSelection() {
         document.querySelectorAll('.file-item').forEach(item => {
@@ -394,9 +483,15 @@
                     await loadFolderById(fileId);
                 } else {
                     const ext = fileName.split('.').pop().toLowerCase();
-                    const previewable = ['txt', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'mp3', 'wav', 'webm'];
-                    if (previewable.includes(ext)) {
-                        openPreviewModal(fileId, fileName, ext);
+                    const audioExt = ['mp3', 'wav', 'ogg'];
+                    const previewable = ['txt','png','jpg','jpeg','gif','webp','mp4','webm'];
+
+                    if (audioExt.includes(ext)) {
+
+
+                        openAudioPlayer(fileId, ext, fileName); // <-- плеер
+                    } else if (previewable.includes(ext)) {
+                        openPreviewModal(fileId, fileName, ext); // остальное в превью
                     } else {
                         showNotification("Preview not supported", `Cannot preview .${ext} files`);
                     }
@@ -434,7 +529,6 @@
                         },
                         credentials: 'include'
                     })
-
 
                     if (!response.ok) throw new Error('Failed to delete');
 
@@ -540,6 +634,7 @@
 
         fileInput.value = '';
     }
+
     async function uploadFileInChunks(file, parentFolderId) {
         const chunkSize = 2 * 1024 * 1024; // 2 MB
         const totalChunks = Math.ceil(file.size / chunkSize);
@@ -602,23 +697,6 @@
         // закрытие вручную (через 3 секунды после загрузки)
         notification.autoClose(3000);
     }
-
-
-    function formatBytes(bytes) {
-        if (bytes === 0) return '0 B';
-        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-    }
-
-
-
-    // Назначаем обработчик на input для загрузки файлов
-    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-
-    // Добавьте этот код в функцию showNotification
-
-
 
     function updateBreadcrumb() {
         const pathBar = document.getElementById('currentPath');
@@ -700,19 +778,10 @@
             document.body.appendChild(overlay);
         }
     }
+
+
+
 </script>
-
-<div class="resizable-preview" id="previewModal">
-    <div class="preview-header">
-        <span id="previewTitle">Preview</span>
-        <button class="preview-close" onclick="closePreviewModal()">×</button>
-    </div>
-    <div class="preview-body" id="previewContent"></div>
-    <div class="preview-resizer" id="previewResizer"></div>
-</div>
-
-
-
 
 <script th:src="@{/script/script.js}"></script>
 </body>

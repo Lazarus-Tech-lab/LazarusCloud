@@ -12,7 +12,7 @@ const ThemeManager = {
 
         const themeSwitcher = document.getElementById('themeSwitcher');
         if (themeSwitcher) {
-            themeSwitcher.textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+            themeSwitcher.textContent = isLight ? '🌙' : '☀️';
         }
     },
 
@@ -25,6 +25,14 @@ const ThemeManager = {
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         this.saveTheme(newTheme);
         this.applyTheme(newTheme);
+
+        // В обработчике смены темы
+        const themeIcon = document.querySelector('#themeSwitcher .material-symbols-outlined');
+        if (isLightTheme) {
+            themeIcon.textContent = 'light_mode';
+        } else {
+            themeIcon.textContent = 'dark_mode';
+        }
     }
 };
 
@@ -391,18 +399,10 @@ function openPreviewModal(fileId, fileName, ext) {
     const isText = ext === 'txt';
 
     if (isAudio) {
-        // АУДИО — проигрываем в боковой панели
-        const audio = document.getElementById('audioPlayer');
-        const label = document.getElementById('audioTitle');
-        const box = document.getElementById('audioPlayerContainer');
-
-        audio.src = url;
-        audio.play().catch(console.warn);
-        label.textContent = fileName;
-        box.classList.remove('hidden');
-
-        // закрываем предпросмотр, если был открыт
-        //modal.classList.remove('active');
+        console.log(url);
+        console.log(fileName);
+        console.log(ext);
+        openAudioPlayer(url, fileName, ext);
         return;
     }
 
@@ -437,6 +437,125 @@ function openPreviewModal(fileId, fileName, ext) {
     modal.classList.add('active');
 }
 
+// Инициализация элементов
+const audioPlayer = document.getElementById('audioPlayer');
+const audioElement = new Audio();
+const playPauseBtn = document.getElementById('playPauseBtn');
+const progressBar = document.getElementById('progressBar');
+const volumeBar = document.getElementById('volumeBar');
+const volumeBtn = document.getElementById('volumeBtn');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const closePlayer = document.getElementById('closePlayer');
+
+// Состояние плеера
+let isPlaying = false;
+let lastVolume = 100;
+
+// Функция для отображения времени
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+// Обновление прогресса
+function updateProgress() {
+    progressBar.value = (audioElement.currentTime / audioElement.duration) * 100;
+    currentTimeEl.textContent = formatTime(audioElement.currentTime);
+}
+
+// Обновление длительности
+function updateDuration() {
+    durationEl.textContent = formatTime(audioElement.duration);
+}
+
+// Воспроизведение/пауза
+function togglePlayPause() {
+    if (isPlaying) {
+        audioElement.pause();
+        playPauseBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
+    } else {
+        audioElement.play();
+        playPauseBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+    }
+    isPlaying = !isPlaying;
+}
+
+// Перемотка
+function setProgress() {
+    audioElement.currentTime = (progressBar.value / 100) * audioElement.duration;
+}
+
+// Управление громкостью
+function setVolume() {
+    const volume = volumeBar.value / 100;
+    audioElement.volume = volume;
+
+    if (volume > 0.5) {
+        volumeBtn.innerHTML = '<span class="material-symbols-outlined">volume_up</span>';
+    } else if (volume > 0) {
+        volumeBtn.innerHTML = '<span class="material-symbols-outlined">volume_down</span>';
+    } else {
+        volumeBtn.innerHTML = '<span class="material-symbols-outlined">volume_off</span>';
+    }
+}
+
+// Переключение mute/unmute
+function toggleMute() {
+    if (audioElement.volume > 0) {
+        lastVolume = audioElement.volume * 100;
+        audioElement.volume = 0;
+        volumeBar.value = 0;
+        volumeBtn.innerHTML = '<span class="material-symbols-outlined">volume_off</span>';
+    } else {
+        audioElement.volume = lastVolume / 100;
+        volumeBar.value = lastVolume;
+        setVolume();
+    }
+}
+
+// События
+playPauseBtn.addEventListener('click', togglePlayPause);
+progressBar.addEventListener('input', setProgress);
+volumeBar.addEventListener('input', setVolume);
+volumeBtn.addEventListener('click', toggleMute);
+closePlayer.addEventListener('click', () => {
+    audioPlayer.classList.add('hidden');
+    audioElement.pause();
+    isPlaying = false;
+    playPauseBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
+});
+
+audioElement.addEventListener('timeupdate', updateProgress);
+audioElement.addEventListener('loadedmetadata', updateDuration);
+audioElement.addEventListener('ended', () => {
+    isPlaying = false;
+    playPauseBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
+});
+
+// Функция для открытия плеера
+function openAudioPlayer(fileId, ext, fileName, artist = 'Неизвестный исполнитель') {
+    const img = document.getElementById('audioPic');
+    const titleEl = document.getElementById('audioTitle');
+    const artistEl = document.getElementById('audioArtist');
+
+    titleEl.textContent = fileName;
+    artistEl.textContent = artist;
+    img.src = '/api/storage/raw/thumb/' + fileId;
+    img.onerror = () => { img.src = '/placeholder.jpg'; };
+
+    audioElement.src = '/api/storage/raw/' + fileId;
+    audioPlayer.classList.remove('hidden');
+
+    // Автовоспроизведение (если разрешено)
+    audioElement.play().then(() => {
+        isPlaying = true;
+        playPauseBtn.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+    }).catch(e => {
+        console.log('Автовоспроизведение заблокировано:', e);
+    });
+}
 
 function closePreviewModal() {
     const modal = document.getElementById('previewModal');
