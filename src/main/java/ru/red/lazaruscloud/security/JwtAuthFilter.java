@@ -41,7 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (token == null && request.getRequestURI().startsWith("/api/auth")) {
+        if (token == null && request.getRequestURI().startsWith("/api/auth") || request.getRequestURI().startsWith("/api/register")) {
             filterChain.doFilter(request, response);
             return;
         }
